@@ -5,7 +5,7 @@ VisualStudioVersion = 15.0.28010.2026
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Sandbox", "Sandbox\Sandbox.csproj", "{4177036D-7473-4966-A920-A39E647794FE}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFmpeg", "FFmpeg\FFmpeg.vcxproj", "{B03EDF1A-C356-4045-B4C3-8B1BEC8369BE}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FFmpeg-CLR", "FFmpeg-CLR\FFmpeg-CLR.vcxproj", "{B03EDF1A-C356-4045-B4C3-8B1BEC8369BE}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

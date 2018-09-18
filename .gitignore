@@ -259,3 +259,6 @@ paket-files/
 # Python Tools for Visual Studio (PTVS)
 __pycache__/
 *.pyc
+
+# Relevant FFmpeg files downloaded from https://www.ffmpeg.org/download.html
+FFmpeg/
