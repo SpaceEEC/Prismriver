@@ -51,9 +51,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FFmpeg\FFmpeg.vcxproj">
+    <ProjectReference Include="..\FFmpeg-CLR\FFmpeg-CLR.vcxproj">
       <Project>{b03edf1a-c356-4045-b4c3-8b1bec8369be}</Project>
-      <Name>FFmpeg</Name>
+      <Name>FFmpeg-CLR</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
