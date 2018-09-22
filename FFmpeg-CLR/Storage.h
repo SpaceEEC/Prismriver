@@ -4,6 +4,7 @@ extern "C"
 {
 #include <libavcodec/avcodec.h>
 #include <libavformat/avformat.h>
+#include <libavfilter/buffersink.h>
 }
 
 namespace FFmpeg
@@ -11,9 +12,19 @@ namespace FFmpeg
 	private struct Storage
 	{
 	public:
-		AVFormatContext* m_InputFormatContext = nullptr;
-		AVCodec* m_InputCodec = nullptr;
-		AVCodecContext* m_InputCodecContext = nullptr;
 		~Storage();
+
+		AVFormatContext* inputFormatContext = nullptr;
+		AVFormatContext* outputFormatContext = nullptr;
+
+		AVCodecContext* decoderContext = nullptr;
+		AVCodecContext* encoderContext = nullptr;
+
+		AVCodec* decoder = nullptr;
+		AVCodec* encoder = nullptr;
+
+		AVFilterContext* bufferSinkContext;
+		AVFilterContext* bufferSourceContext;
+		AVFilterGraph* filterGraph;
 	};
 }

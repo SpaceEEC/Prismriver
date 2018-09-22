@@ -13,16 +13,33 @@ namespace FFmpeg
 {
 	Storage::~Storage()
 	{
-		// Do not "free" a codec
-		this->m_InputCodec = nullptr;
-
-		if (this->m_InputFormatContext != nullptr)
+		if (this->inputFormatContext != nullptr)
 		{
-			avformat_close_input(&this->m_InputFormatContext);
-			avformat_free_context(this->m_InputFormatContext);
+			avformat_close_input(&this->inputFormatContext);
 		}
 
-		if (this->m_InputCodecContext != nullptr)
-			avcodec_free_context(&this->m_InputCodecContext);
+		if (this->outputFormatContext != nullptr)
+		{
+			avformat_close_input(&this->outputFormatContext);
+		}
+
+		if (this->encoderContext != nullptr)
+		{
+			avcodec_close(this->encoderContext);
+			avcodec_free_context(&this->encoderContext);
+		}
+		if (this->decoderContext != nullptr)
+		{
+			avcodec_close(this->encoderContext);
+			avcodec_free_context(&this->decoderContext);
+		}
+		// Do not "free" codecs
+		this->decoder = nullptr;
+		this->encoder = nullptr;
+
+		avfilter_free(this->bufferSourceContext);
+		avfilter_free(this->bufferSinkContext);
+
+		avfilter_graph_free(&this->filterGraph);
 	}
 }
