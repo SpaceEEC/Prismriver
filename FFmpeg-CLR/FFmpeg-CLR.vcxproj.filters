@@ -17,6 +17,9 @@
     <ClInclude Include="Storage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="BufferData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FFmpeg-CLR.cpp">
@@ -26,6 +29,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Storage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="BufferData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FFmpeg-MetaData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

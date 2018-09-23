@@ -135,9 +135,12 @@
   <ItemGroup>
     <ClInclude Include="FFmpeg-CLR.h" />
     <ClInclude Include="Storage.h" />
+    <ClInclude Include="BufferData.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
+    <ClCompile Include="BufferData.cpp" />
+    <ClCompile Include="FFmpeg-MetaData.cpp" />
     <ClCompile Include="FFmpeg-CLR.cpp" />
     <ClCompile Include="Storage.cpp" />
   </ItemGroup>
