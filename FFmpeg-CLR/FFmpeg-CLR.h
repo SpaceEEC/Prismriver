@@ -9,6 +9,7 @@ extern "C"
 }
 
 #include "Storage.h"
+#include "BufferData.h"
 
 using namespace System;
 using namespace System::IO;
@@ -20,9 +21,9 @@ namespace FFmpeg
 	public ref class FFmpeg sealed
 	{
 	public:
-		static Dictionary<String^, String^>^ GetMetaData(MemoryStream^ stream);
+		static Dictionary<String^, String^>^ GetMetaData(Stream^ stream);
 
-		FFmpeg(String^ fileIn, String^ fileOut);
+		FFmpeg(Stream^ streamIn, String^ fileOut);
 		void DoStuff();
 
 	private:
@@ -32,7 +33,8 @@ namespace FFmpeg
 		// Hack to not have interior_ptr<T> but native pointers
 		Storage* storage;
 
-		const char* fileIn;
+		Buffer::Data^ bufferData;
+
 		const char* fileOut;
 		int streamIndex;
 

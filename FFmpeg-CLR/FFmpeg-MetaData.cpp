@@ -1,30 +1,27 @@
 #include "FFmpeg-CLR.h"
 
+#include <algorithm>
+#include <iterator>
+
 #include "BufferData.h"
 
 constexpr int BUFFERSIZE = 16 * 1024;
 
 namespace FFmpeg
 {
-	Dictionary<String^, String^>^ FFmpeg::GetMetaData(MemoryStream^ stream)
+	Dictionary<String^, String^>^ FFmpeg::GetMetaData(Stream^ stream)
 	{
-		array<unsigned char>^ buffer = stream->GetBuffer();
-		pin_ptr<unsigned char> pinned = &buffer[0];
-
-		BufferData data(
-			static_cast<unsigned char*>(pinned),
-			buffer->LongLength
-		);
+		Buffer::Data data(stream);
 
 		unsigned char* pFileStreamBuffer = static_cast<unsigned char*>(av_malloc(BUFFERSIZE));
 		AVIOContext* pIOContext = avio_alloc_context(
 			pFileStreamBuffer,
 			BUFFERSIZE,
 			0,
-			&data,
-			&data.ReadFunc,
+			data.ptr,
+			Buffer::ReadFunc,
 			NULL,
-			&data.SeekFunc
+			Buffer::SeekFunc
 		);
 
 		AVFormatContext* pFormatContext = avformat_alloc_context();

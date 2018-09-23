@@ -1,17 +1,34 @@
 #pragma once
 
+using namespace System;
+using namespace System::IO;
+using namespace System::Runtime::InteropServices;
+
 namespace FFmpeg
 {
-	private struct BufferData
+	namespace Buffer
 	{
-		unsigned char* buffer;
-		long long position;
-		long long length;
+		private ref struct Data
+		{
+		private:
+			GCHandle handle;
 
-		BufferData(unsigned char* buffer, long long length);
+		public:
+			void* ptr;
 
-		static int ReadFunc(void* opaque, unsigned char *buf, int buf_size);
-		static int WriteFunc(void* opaque, unsigned char *buf, int buf_size);
-		static long long SeekFunc(void* opaque, long long offset, int whence);
-	};
+			Data(Stream^ stream) : handle(GCHandle::Alloc(stream))
+			{
+				this->ptr = GCHandle::ToIntPtr(this->handle).ToPointer();
+			}
+
+			~Data()
+			{
+				this->handle.Free();
+			}
+		};
+
+		int ReadFunc(void* opaque, unsigned char* buf, int buf_size);
+		int WriteFunc(void* opaque, unsigned char* buf, int buf_size);
+		long long SeekFunc(void* opaque, long long offset, int whence);
+	}
 }

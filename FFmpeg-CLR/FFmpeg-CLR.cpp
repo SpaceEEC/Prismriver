@@ -11,27 +11,28 @@ extern "C"
 }
 
 #define logging(fmt, ...) av_log(NULL, AV_LOG_INFO, fmt, __VA_ARGS__)
+constexpr int BUFFERSIZE = 16 * 1024;
 
 namespace FFmpeg
 {
-	FFmpeg::FFmpeg(String^ fileIn, String^ fileOut)
+	FFmpeg::FFmpeg(Stream^ streamIn, String^ fileOut)
 	{
 		this->storage = new Storage();
-		this->fileIn = static_cast<const char*>(Marshal::StringToHGlobalAnsi(fileIn).ToPointer());
+		this->bufferData = gcnew Buffer::Data(streamIn);
 		this->fileOut = static_cast<const char*>(Marshal::StringToHGlobalAnsi(fileOut).ToPointer());
 	}
 	FFmpeg::~FFmpeg() { this->!FFmpeg(); }
 	FFmpeg::!FFmpeg()
 	{
 		delete this->storage;
-		Marshal::FreeHGlobal(static_cast<IntPtr>(const_cast<char*>(this->fileIn)));
+		delete this->bufferData;
 		Marshal::FreeHGlobal(static_cast<IntPtr>(const_cast<char*>(this->fileOut)));
 	}
 
 	void FFmpeg::DoStuff()
 	{
 		HRESULT hr = S_OK;
-		
+
 		if (SUCCEEDED(hr)) hr = this->InitInput_();
 		if (SUCCEEDED(hr)) hr = this->InitOutput_();
 		if (SUCCEEDED(hr)) hr = this->InitFilter_();
@@ -47,17 +48,30 @@ namespace FFmpeg
 
 	inline HRESULT FFmpeg::InitInput_()
 	{
-		AVFormatContext* pFormatContext = this->storage->inputFormatContext = avformat_alloc_context();
+		unsigned char* pBuffer = static_cast<unsigned char*>(av_malloc(BUFFERSIZE));
+		AVIOContext* pIOContext = this->storage->inputIOContext = avio_alloc_context(
+			pBuffer,
+			BUFFERSIZE,
+			0,
+			this->bufferData->ptr,
+			Buffer::ReadFunc,
+			NULL,
+			Buffer::SeekFunc
+		);
 
+		AVFormatContext* pFormatContext = this->storage->inputFormatContext = avformat_alloc_context();
 		if (pFormatContext == nullptr) return E_OUTOFMEMORY;
 
+		pFormatContext->pb = pIOContext;
+		pFormatContext->flags |= AVFMT_FLAG_CUSTOM_IO;
+
 		HRESULT hr = S_OK;
-		if (FAILED(hr = avformat_open_input(&pFormatContext, this->fileIn, NULL, NULL))) return hr;
+		if (FAILED(hr = avformat_open_input(&pFormatContext, "", NULL, NULL))) return hr;
 		logging("Found format in input: %s", (pFormatContext)->iformat->long_name);
 
 		if (FAILED(hr = avformat_find_stream_info(pFormatContext, NULL))) return hr;
 
-		av_dump_format(pFormatContext, 0, this->fileIn, 0);
+		av_dump_format(pFormatContext, 0, "", 0);
 
 		this->streamIndex = av_find_best_stream(pFormatContext, AVMEDIA_TYPE_AUDIO, -1, -1, &this->storage->decoder, 0);
 		AVCodec* pDecoder = this->storage->decoder;
@@ -337,6 +351,5 @@ namespace FFmpeg
 		} while (true);
 
 		av_packet_unref(encodedPacket);
-		av_free_packet(encodedPacket);
 	}
 }

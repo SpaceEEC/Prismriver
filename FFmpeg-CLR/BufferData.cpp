@@ -9,39 +9,80 @@
 
 namespace FFmpeg
 {
-	BufferData::BufferData(unsigned char* buffer, long long length) : buffer(buffer), length(length), position(0) {}
-
-	int BufferData::ReadFunc(void* opaque, unsigned char* buf, int bufSize)
+	namespace Buffer
 	{
-		BufferData* pData = static_cast<BufferData*>(opaque);
+		int ReadFunc(void* opaque, unsigned char* buf, int bufSize)
+		{
+			Stream^ ms = static_cast<Stream^>(static_cast<GCHandle>(static_cast<IntPtr>(opaque)).Target);
+			if (!ms->CanRead) return -1;
 
-		long long rest = pData->length - pData->position - 1;
-		long long read = bufSize;
-		if (bufSize > rest) read = rest;
+			array<unsigned char>^ hBuffer = gcnew array<unsigned char>(bufSize);
 
-		std::copy(
-			pData->buffer + pData->position,
-			pData->buffer + pData->position + read,
-			buf
-		);
+			int read = ms->Read(hBuffer, 0, bufSize);
 
-		return read == 0 ? AVERROR_EOF : static_cast<int>(read);
-	}
+			{
+				pin_ptr<unsigned char> pinned = &hBuffer[0];
+				memcpy_s(
+					buf,
+					sizeof(unsigned char) * read,
+					static_cast<void*>(pinned),
+					sizeof(unsigned char) * read
+				);
+			}
 
-	int BufferData::WriteFunc(void* opaque, unsigned char* buf, int bufSize)
-	{
-		return 0;
-	}
+			hBuffer = nullptr;
 
-	long long BufferData::SeekFunc(void* opaque, long long offset, int whence)
-	{
-		BufferData* pData = static_cast<BufferData*>(opaque);
+			return read == 0 ? AVERROR_EOF : read;
+		}
+
+		int WriteFunc(void* opaque, unsigned char* buf, int bufSize)
+		{
+			Stream^ ms = static_cast<Stream^>(static_cast<GCHandle>(static_cast<IntPtr>(opaque)).Target);
+			if (!ms->CanWrite) return -1;
+
+			array<unsigned char>^ hBuffer = gcnew array<unsigned char>(bufSize);
+
+			{
+				pin_ptr<unsigned char> pinned = &hBuffer[0];
+				memcpy_s(
+					static_cast<void*>(pinned),
+					bufSize,
+					buf,
+					bufSize
+				);
+			}
+
+			try
+			{
+				ms->Write(hBuffer, 0, bufSize);
+			}
+			catch (Exception^)
+			{
+				return -1;
+			}
+			finally
+			{
+				hBuffer = nullptr;
+			}
 		
-		if ((whence & AVSEEK_SIZE) == AVSEEK_SIZE) return pData->length;
-		if (whence == SEEK_SET) pData->position = offset;
-		else if (whence == SEEK_CUR) pData->position = pData->position + offset;
-		else if (whence == SEEK_END) pData->position = pData->length + offset;
+			return 0;
+		}
 
-		return pData->position;
+		long long SeekFunc(void* opaque, long long offset, int whence)
+		{
+			Stream^ ms = static_cast<Stream^>(static_cast<GCHandle>(static_cast<IntPtr>(opaque)).Target);
+
+			try
+			{
+				if ((whence & AVSEEK_SIZE) == AVSEEK_SIZE) return ms->Length;
+				if (!ms->CanSeek) return -1;
+
+				return ms->Seek(offset, static_cast<SeekOrigin>(whence));
+			}
+			catch (Exception^)
+			{
+				return -1;
+			}
+		}
 	}
 }

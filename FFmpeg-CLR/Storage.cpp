@@ -23,6 +23,11 @@ namespace FFmpeg
 			avformat_close_input(&this->outputFormatContext);
 		}
 
+		if (this->inputIOContext != nullptr)
+		{
+			av_freep(this->inputIOContext);
+		}
+
 		if (this->encoderContext != nullptr)
 		{
 			avcodec_close(this->encoderContext);
