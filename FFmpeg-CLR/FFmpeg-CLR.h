@@ -2,14 +2,16 @@
 
 #include <winerror.h>
 
-extern "C"
-{
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
-}
-
 #include "Storage.h"
 #include "BufferData.h"
+
+extern "C"
+{
+#include <libavformat/avformat.h>
+#include <libavcodec/avcodec.h>
+}
+
+
 
 using namespace System;
 using namespace System::IO;
@@ -23,7 +25,7 @@ namespace FFmpeg
 	public:
 		static Dictionary<String^, String^>^ GetMetaData(Stream^ stream);
 
-		FFmpeg(Stream^ streamIn, String^ fileOut);
+		FFmpeg(Stream^ streamIn, Stream^ streamOut);
 		void DoStuff();
 
 	private:
@@ -33,9 +35,9 @@ namespace FFmpeg
 		// Hack to not have interior_ptr<T> but native pointers
 		Storage* storage;
 
-		Buffer::Data^ bufferData;
+		Buffer::Data^ dataIn;
+		Buffer::Data^ dataOut;
 
-		const char* fileOut;
 		int streamIndex;
 
 		inline HRESULT InitInput_();

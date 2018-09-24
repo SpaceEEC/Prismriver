@@ -4,29 +4,25 @@
 
 extern "C"
 {
-#include <libavcodec/avcodec.h>
-#include <libavformat/avformat.h>
 #include <libavutil/opt.h>
 #include <libavfilter/buffersrc.h>
 }
 
 #define logging(fmt, ...) av_log(NULL, AV_LOG_INFO, fmt, __VA_ARGS__)
-constexpr int BUFFERSIZE = 16 * 1024;
 
 namespace FFmpeg
 {
-	FFmpeg::FFmpeg(Stream^ streamIn, String^ fileOut)
-	{
-		this->storage = new Storage();
-		this->bufferData = gcnew Buffer::Data(streamIn);
-		this->fileOut = static_cast<const char*>(Marshal::StringToHGlobalAnsi(fileOut).ToPointer());
-	}
+	FFmpeg::FFmpeg(Stream^ streamIn, Stream^ streamOut)
+		: storage(new Storage()),
+		dataIn(gcnew Buffer::Data(streamIn)),
+		dataOut(gcnew Buffer::Data(streamOut)) {}
 	FFmpeg::~FFmpeg() { this->!FFmpeg(); }
 	FFmpeg::!FFmpeg()
 	{
+		GC::SuppressFinalize(this);
 		delete this->storage;
-		delete this->bufferData;
-		Marshal::FreeHGlobal(static_cast<IntPtr>(const_cast<char*>(this->fileOut)));
+		delete this->dataIn;
+		delete this->dataOut;
 	}
 
 	void FFmpeg::DoStuff()
@@ -48,12 +44,11 @@ namespace FFmpeg
 
 	inline HRESULT FFmpeg::InitInput_()
 	{
-		unsigned char* pBuffer = static_cast<unsigned char*>(av_malloc(BUFFERSIZE));
 		AVIOContext* pIOContext = this->storage->inputIOContext = avio_alloc_context(
-			pBuffer,
-			BUFFERSIZE,
+			this->dataIn->buffer,
+			Buffer::BUFFERSIZE,
 			0,
-			this->bufferData->ptr,
+			this->dataIn->stream,
 			Buffer::ReadFunc,
 			NULL,
 			Buffer::SeekFunc
@@ -63,15 +58,14 @@ namespace FFmpeg
 		if (pFormatContext == nullptr) return E_OUTOFMEMORY;
 
 		pFormatContext->pb = pIOContext;
-		pFormatContext->flags |= AVFMT_FLAG_CUSTOM_IO;
 
 		HRESULT hr = S_OK;
-		if (FAILED(hr = avformat_open_input(&pFormatContext, "", NULL, NULL))) return hr;
+		if (FAILED(hr = avformat_open_input(&pFormatContext, NULL, NULL, NULL))) return hr;
 		logging("Found format in input: %s", (pFormatContext)->iformat->long_name);
 
 		if (FAILED(hr = avformat_find_stream_info(pFormatContext, NULL))) return hr;
 
-		av_dump_format(pFormatContext, 0, "", 0);
+		av_dump_format(pFormatContext, 0, NULL, 0);
 
 		this->streamIndex = av_find_best_stream(pFormatContext, AVMEDIA_TYPE_AUDIO, -1, -1, &this->storage->decoder, 0);
 		AVCodec* pDecoder = this->storage->decoder;
@@ -95,11 +89,25 @@ namespace FFmpeg
 
 	inline HRESULT FFmpeg::InitOutput_()
 	{
+		AVIOContext* pIOContext = this->storage->outpuIOContext = avio_alloc_context(
+			this->dataOut->buffer,
+			Buffer::BUFFERSIZE,
+			1,
+			this->dataOut->stream,
+			NULL,
+			Buffer::WriteFunc,
+			NULL
+		);
+
 		HRESULT hr = S_OK;
-		if (FAILED(hr = avformat_alloc_output_context2(&this->storage->outputFormatContext, NULL, NULL, this->fileOut)))
+		AVOutputFormat* pOutputFormat = av_guess_format("mp3", NULL, NULL);
+		if (FAILED(hr = avformat_alloc_output_context2(&this->storage->outputFormatContext, pOutputFormat, NULL, NULL)))
 			return hr;
 
 		AVFormatContext* pOutputFormatContext = this->storage->outputFormatContext;
+
+		pOutputFormatContext->pb = pIOContext;
+		pOutputFormatContext->flags |= AVFMT_FLAG_CUSTOM_IO;
 
 		AVStream* pOutStream = avformat_new_stream(pOutputFormatContext, NULL);
 
@@ -130,11 +138,7 @@ namespace FFmpeg
 
 		pOutStream->time_base = pEncoderContext->time_base;
 
-		av_dump_format(pOutputFormatContext, 0, this->fileOut, 1);
-
-		if (!(pOutputFormatContext->oformat->flags & AVFMT_NOFILE))
-			if (FAILED(hr = avio_open(&pOutputFormatContext->pb, this->fileOut, AVIO_FLAG_WRITE)))
-				return hr;
+		av_dump_format(pOutputFormatContext, 0, NULL, 1);
 
 		if (FAILED(hr = avformat_write_header(pOutputFormatContext, NULL)))
 			return hr;

@@ -18,6 +18,7 @@ namespace FFmpeg
 		AVFormatContext* outputFormatContext = nullptr;
 
 		AVIOContext* inputIOContext = nullptr;
+		AVIOContext* outpuIOContext = nullptr;
 
 		AVCodecContext* decoderContext = nullptr;
 		AVCodecContext* encoderContext = nullptr;

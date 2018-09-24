@@ -1,11 +1,9 @@
 #include "BufferData.h"
 
-#include <stdint.h>
-
-#include <algorithm>
-#include <iterator>
-
-#include <libavformat/avformat.h>
+extern "C"
+{
+#include <libavformat/avformat.h> // AV* macros
+}
 
 namespace FFmpeg
 {
@@ -30,7 +28,7 @@ namespace FFmpeg
 				);
 			}
 
-			hBuffer = nullptr;
+			delete hBuffer;
 
 			return read == 0 ? AVERROR_EOF : read;
 		}
@@ -62,7 +60,7 @@ namespace FFmpeg
 			}
 			finally
 			{
-				hBuffer = nullptr;
+				delete hBuffer;
 			}
 		
 			return 0;
