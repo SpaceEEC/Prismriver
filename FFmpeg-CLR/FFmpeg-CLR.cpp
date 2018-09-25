@@ -93,7 +93,7 @@ namespace FFmpeg
 
 		AVStream* pOutStream = avformat_new_stream(pOutputFormatContext, NULL);
 
-		AVCodec* pEncoder = this->storage->encoder = avcodec_find_encoder(AV_CODEC_ID_MP3);
+		AVCodec* pEncoder = this->storage->encoder = avcodec_find_encoder(pOutputFormatContext->oformat->audio_codec);
 		if (pEncoder == nullptr) return AVERROR_ENCODER_NOT_FOUND;
 
 		AVCodecContext* pEncoderContext = this->storage->encoderContext = avcodec_alloc_context3(pEncoder);
