@@ -66,11 +66,4 @@ namespace FFmpeg
 		 */
 		HRESULT openWrite() { return this->open(true); }
 	};
-
-	namespace Buffer
-	{
-		int ReadFunc(void* opaque, unsigned char* buf, int buf_size);
-		int WriteFunc(void* opaque, unsigned char* buf, int buf_size);
-		long long SeekFunc(void* opaque, long long offset, int whence);
-	}
 }

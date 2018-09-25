@@ -135,12 +135,14 @@
   <ItemGroup>
     <ClInclude Include="FormatContextWrapper.h" />
     <ClInclude Include="FFmpeg-CLR.h" />
+    <ClInclude Include="IO.h" />
     <ClInclude Include="Storage.h" />
     <ClInclude Include="IOContextWrapper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="FormatContextWrapper.cpp" />
+    <ClCompile Include="IO.cpp" />
     <ClCompile Include="IOContextWrapper.cpp" />
     <ClCompile Include="FFmpeg-MetaData.cpp" />
     <ClCompile Include="FFmpeg-CLR.cpp" />
