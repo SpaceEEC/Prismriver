@@ -14,12 +14,6 @@ namespace FFmpeg
 	public:
 		~Storage();
 
-		AVFormatContext* inputFormatContext = nullptr;
-		AVFormatContext* outputFormatContext = nullptr;
-
-		AVIOContext* inputIOContext = nullptr;
-		AVIOContext* outpuIOContext = nullptr;
-
 		AVCodecContext* decoderContext = nullptr;
 		AVCodecContext* encoderContext = nullptr;
 

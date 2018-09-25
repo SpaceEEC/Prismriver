@@ -109,7 +109,7 @@
     </ClCompile>
     <Link>
       <AdditionalDependencies>avcodec.lib;avdevice.lib;avfilter.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>$(SolutionDir)FFmpeg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SolutionDir)FFmpeg\lib;$(SolutionDir)FFmpeg\bin;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -133,13 +133,15 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="FormatContextWrapper.h" />
     <ClInclude Include="FFmpeg-CLR.h" />
     <ClInclude Include="Storage.h" />
-    <ClInclude Include="BufferData.h" />
+    <ClInclude Include="IOContextWrapper.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
-    <ClCompile Include="BufferData.cpp" />
+    <ClCompile Include="FormatContextWrapper.cpp" />
+    <ClCompile Include="IOContextWrapper.cpp" />
     <ClCompile Include="FFmpeg-MetaData.cpp" />
     <ClCompile Include="FFmpeg-CLR.cpp" />
     <ClCompile Include="Storage.cpp" />

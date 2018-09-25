@@ -1,4 +1,5 @@
 #include "FFmpeg-CLR.h"
+#include "FormatContextWrapper.h"
 
 #include <winerror.h>
 
@@ -14,8 +15,14 @@ namespace FFmpeg
 {
 	FFmpeg::FFmpeg(Stream^ streamIn, Stream^ streamOut)
 		: storage(new Storage()),
-		dataIn(gcnew Buffer::Data(streamIn)),
-		dataOut(gcnew Buffer::Data(streamOut)) {}
+		dataIn(gcnew FormatContextWrapper(streamIn)),
+		dataOut(gcnew FormatContextWrapper(streamOut)) {}
+
+	FFmpeg::FFmpeg(String^ fileIn, String^ fileOut)
+		: storage(new Storage()),
+		dataIn(gcnew FormatContextWrapper(fileIn)),
+		dataOut(gcnew FormatContextWrapper(fileOut)) {}
+
 	FFmpeg::~FFmpeg() { this->!FFmpeg(); }
 	FFmpeg::!FFmpeg()
 	{
@@ -44,24 +51,13 @@ namespace FFmpeg
 
 	inline HRESULT FFmpeg::InitInput_()
 	{
-		AVIOContext* pIOContext = this->storage->inputIOContext = avio_alloc_context(
-			this->dataIn->buffer,
-			Buffer::BUFFERSIZE,
-			0,
-			this->dataIn->stream,
-			Buffer::ReadFunc,
-			NULL,
-			Buffer::SeekFunc
-		);
-
-		AVFormatContext* pFormatContext = this->storage->inputFormatContext = avformat_alloc_context();
-		if (pFormatContext == nullptr) return E_OUTOFMEMORY;
-
-		pFormatContext->pb = pIOContext;
 
 		HRESULT hr = S_OK;
-		if (FAILED(hr = avformat_open_input(&pFormatContext, NULL, NULL, NULL))) return hr;
-		logging("Found format in input: %s", (pFormatContext)->iformat->long_name);
+		if (FAILED(hr = this->dataIn->openRead())) return hr;
+
+		AVFormatContext* pFormatContext = this->dataIn->formatContext;
+
+		logging("Found format in input: %s", pFormatContext->iformat->long_name);
 
 		if (FAILED(hr = avformat_find_stream_info(pFormatContext, NULL))) return hr;
 
@@ -89,25 +85,11 @@ namespace FFmpeg
 
 	inline HRESULT FFmpeg::InitOutput_()
 	{
-		AVIOContext* pIOContext = this->storage->outpuIOContext = avio_alloc_context(
-			this->dataOut->buffer,
-			Buffer::BUFFERSIZE,
-			1,
-			this->dataOut->stream,
-			NULL,
-			Buffer::WriteFunc,
-			NULL
-		);
-
 		HRESULT hr = S_OK;
-		AVOutputFormat* pOutputFormat = av_guess_format("mp3", NULL, NULL);
-		if (FAILED(hr = avformat_alloc_output_context2(&this->storage->outputFormatContext, pOutputFormat, NULL, NULL)))
+		if (FAILED(hr = this->dataOut->openWrite()))
 			return hr;
 
-		AVFormatContext* pOutputFormatContext = this->storage->outputFormatContext;
-
-		pOutputFormatContext->pb = pIOContext;
-		pOutputFormatContext->flags |= AVFMT_FLAG_CUSTOM_IO;
+		AVFormatContext* pOutputFormatContext = this->dataOut->formatContext;
 
 		AVStream* pOutStream = avformat_new_stream(pOutputFormatContext, NULL);
 
@@ -274,7 +256,7 @@ namespace FFmpeg
 
 		HRESULT hr = S_OK;
 
-		while (SUCCEEDED(av_read_frame(this->storage->inputFormatContext, pPacket)))
+		while (SUCCEEDED(av_read_frame(this->dataIn->formatContext, pPacket)))
 		{
 			if (pPacket->stream_index == this->streamIndex) 
 				this->DecodePacket_(pPacket, pFrame, pFilterFrame);
@@ -299,7 +281,7 @@ namespace FFmpeg
 
 		av_packet_rescale_ts(
 			pPacket,
-			this->storage->inputFormatContext->streams[this->streamIndex]->time_base,
+			this->dataIn->formatContext->streams[this->streamIndex]->time_base,
 			pDecoderContext->time_base
 		);
 
@@ -348,7 +330,7 @@ namespace FFmpeg
 
 			av_packet_rescale_ts(encodedPacket, this->storage->encoderContext->time_base, this->storage->decoderContext->time_base);
 
-			if (FAILED(av_interleaved_write_frame(this->storage->outputFormatContext, encodedPacket)))
+			if (FAILED(av_interleaved_write_frame(this->dataOut->formatContext, encodedPacket)))
 				break;
 
 			av_packet_unref(encodedPacket);

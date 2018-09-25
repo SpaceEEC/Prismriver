@@ -3,14 +3,13 @@
 #include <winerror.h>
 
 #include "Storage.h"
-#include "BufferData.h"
+#include "FormatContextWrapper.h"
 
 extern "C"
 {
 #include <libavformat/avformat.h>
 #include <libavcodec/avcodec.h>
 }
-
 
 
 using namespace System;
@@ -24,19 +23,23 @@ namespace FFmpeg
 	{
 	public:
 		static Dictionary<String^, String^>^ GetMetaData(Stream^ stream);
+		static Dictionary<String^, String^>^ GetMetaData(String^ file);
 
 		FFmpeg(Stream^ streamIn, Stream^ streamOut);
+		FFmpeg(String^ fileIn, String^ fileOut);
 		void DoStuff();
 
 	private:
+		static Dictionary<String^, String^>^ GetMetaData_(FormatContextWrapper% file);
+	
 		~FFmpeg();
 		!FFmpeg();
 
 		// Hack to not have interior_ptr<T> but native pointers
 		Storage* storage;
 
-		Buffer::Data^ dataIn;
-		Buffer::Data^ dataOut;
+		FormatContextWrapper^ dataIn;
+		FormatContextWrapper^ dataOut;
 
 		int streamIndex;
 
