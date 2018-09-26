@@ -32,8 +32,8 @@ namespace FFmpeg
 			stream->CanWrite ? 1 : 0,
 			GCHandle::ToIntPtr(this->handle_).ToPointer(),
 			stream->CanRead ? IO::ReadFunc : NULL,
-			stream->CanWrite ? NULL : IO::WriteFunc,
-			stream->CanSeek ? IO::SeekFunc : IO::SeekFunc
+			stream->CanWrite ? IO::WriteFunc : NULL,
+			stream->CanSeek ? IO::SeekFunc : NULL
 		);
 
 		if (this->ioContext == nullptr)
