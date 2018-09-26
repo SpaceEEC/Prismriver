@@ -265,6 +265,10 @@ namespace FFmpeg
 			this->FilterFrame_(NULL, pFilterFrame);
 
 			this->EncodeWriteFrame_(NULL);
+
+			HRESULT hr = S_OK;
+			if (FAILED(hr = av_write_trailer(this->dataOut->formatContext)))
+				throw gcnew AVException(hr);
 		}
 		finally
 		{
