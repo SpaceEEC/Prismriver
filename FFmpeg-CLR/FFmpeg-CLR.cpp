@@ -1,5 +1,6 @@
 #include "FFmpeg-CLR.h"
 #include "FormatContextWrapper.h"
+#include "AVException.h"
 
 #include <winerror.h>
 
@@ -44,70 +45,56 @@ namespace FFmpeg
 
 	void FFmpeg::DoStuff()
 	{
-		HRESULT hr = S_OK;
-
-		if (SUCCEEDED(hr)) hr = this->InitInput_();
-		if (SUCCEEDED(hr)) hr = this->InitOutput_();
-		if (SUCCEEDED(hr)) hr = this->InitFilter_();
-		if (SUCCEEDED(hr)) hr = this->DoStuff_();
-
-		if (FAILED(hr))
-		{
-			char errbuf[AV_ERROR_MAX_STRING_SIZE] = { 0 };
-			av_strerror(hr, errbuf, AV_ERROR_MAX_STRING_SIZE);
-			logging("Failure: %s", errbuf);
-		}
+		this->InitInput_();
+		this->InitOutput_();
+		this->InitFilter_();
+		this->DoStuff_();
 	}
 
-	inline HRESULT FFmpeg::InitInput_()
+	inline void FFmpeg::InitInput_()
 	{
-
-		HRESULT hr = S_OK;
-		if (FAILED(hr = this->dataIn->openRead())) return hr;
+		this->dataIn->openRead();
 
 		AVFormatContext* pFormatContext = this->dataIn->formatContext;
 
 		logging("Found format in input: %s", pFormatContext->iformat->long_name);
 
-		if (FAILED(hr = avformat_find_stream_info(pFormatContext, NULL))) return hr;
+		HRESULT hr = S_OK;
+		if (FAILED(hr = avformat_find_stream_info(pFormatContext, NULL))) throw gcnew AVException(hr);
 
 		av_dump_format(pFormatContext, 0, NULL, 0);
 
 		this->streamIndex = av_find_best_stream(pFormatContext, AVMEDIA_TYPE_AUDIO, -1, -1, &this->storage->decoder, 0);
 		AVCodec* pDecoder = this->storage->decoder;
 
-		if (this->streamIndex == AVERROR_STREAM_NOT_FOUND || pDecoder == nullptr) return E_FAIL;
+		if (this->streamIndex == AVERROR_STREAM_NOT_FOUND || pDecoder == nullptr) throw gcnew AVException(AVERROR_STREAM_NOT_FOUND);
 
 		AVCodecContext* pCodecContext = this->storage->decoderContext = avcodec_alloc_context3(pDecoder);
 		if (pCodecContext == nullptr)
-			return E_OUTOFMEMORY;
+			throw gcnew OutOfMemoryException();
 
 		if (FAILED(hr = avcodec_parameters_to_context(pCodecContext, pFormatContext->streams[this->streamIndex]->codecpar)))
-			return hr;
+			throw gcnew AVException(hr);
 
 		if (FAILED(hr = avcodec_open2(pCodecContext, pDecoder, NULL)))
-			return hr;
+			throw gcnew AVException(hr);
 
 		logging("Codec name: %s", pCodecContext->codec_descriptor->long_name);
-
-		return hr;
 	}
 
-	inline HRESULT FFmpeg::InitOutput_()
+	inline void FFmpeg::InitOutput_()
 	{
-		HRESULT hr = S_OK;
-		if (FAILED(hr = this->dataOut->openWrite()))
-			return hr;
+		this->dataOut->openWrite();
 
 		AVFormatContext* pOutputFormatContext = this->dataOut->formatContext;
 
 		AVStream* pOutStream = avformat_new_stream(pOutputFormatContext, NULL);
 
 		AVCodec* pEncoder = this->storage->encoder = avcodec_find_encoder(pOutputFormatContext->oformat->audio_codec);
-		if (pEncoder == nullptr) return AVERROR_ENCODER_NOT_FOUND;
+		if (pEncoder == nullptr) throw gcnew AVException(AVERROR_ENCODER_NOT_FOUND);
 
 		AVCodecContext* pEncoderContext = this->storage->encoderContext = avcodec_alloc_context3(pEncoder);
-		if (pEncoderContext == nullptr) return E_OUTOFMEMORY;
+		if (pEncoderContext == nullptr) throw gcnew OutOfMemoryException();
 
 		AVCodecContext* pDecoderContext = this->storage->decoderContext;
 
@@ -119,11 +106,12 @@ namespace FFmpeg
 		pEncoderContext->time_base.den = 1;
 		pEncoderContext->time_base.num = pEncoderContext->sample_rate;
 
+		HRESULT hr = S_OK;
 		if (FAILED(hr = avcodec_open2(pEncoderContext, pEncoder, NULL)))
-			return hr;
+			throw gcnew AVException(hr);
 
 		if (FAILED(hr = avcodec_parameters_from_context(pOutStream->codecpar, pEncoderContext)))
-			return hr;
+			throw gcnew AVException(hr);
 
 		if (pOutputFormatContext->oformat->flags & AVFMT_GLOBALHEADER)
 			pEncoderContext->flags |= AV_CODEC_FLAG_GLOBAL_HEADER;
@@ -133,12 +121,10 @@ namespace FFmpeg
 		av_dump_format(pOutputFormatContext, 0, NULL, 1);
 
 		if (FAILED(hr = avformat_write_header(pOutputFormatContext, NULL)))
-			return hr;
-
-		return S_OK;
+			throw gcnew AVException(hr);
 	}
 
-	inline HRESULT FFmpeg::InitFilter_()
+	inline void FFmpeg::InitFilter_()
 	{
 		const AVFilter* pBufferSource = NULL;
 		const AVFilter* pBufferSink = NULL;
@@ -150,14 +136,13 @@ namespace FFmpeg
 			AVFilterGraph* pFilterGraph = this->storage->filterGraph = avfilter_graph_alloc();
 
 			if (pOutputs == nullptr || pInputs == nullptr || pFilterGraph == nullptr)
-				return E_OUTOFMEMORY;
+				throw gcnew OutOfMemoryException();
 
 			pBufferSource = avfilter_get_by_name("abuffer");
 			pBufferSink = avfilter_get_by_name("abuffersink");
 
-			// Should never happen
 			if (pBufferSource == nullptr || pBufferSink == nullptr)
-				return AVERROR_UNKNOWN;
+				throw gcnew AVException("Could not find \"abuffer\" and / or \"abuffersink\" filters.\n This should never happen.");
 
 			AVCodecContext* pDecoderContext = this->storage->decoderContext;
 
@@ -180,14 +165,14 @@ namespace FFmpeg
 
 			HRESULT hr = S_OK;
 			if (FAILED(hr = avfilter_graph_create_filter(&this->storage->bufferSourceContext, pBufferSource, "in", args, NULL, pFilterGraph)))
-				return hr;
+				throw gcnew AVException(hr);
 			AVFilterContext* pBufferSourceContext = this->storage->bufferSourceContext;
 
 
 			if (FAILED(hr = avfilter_graph_create_filter(&this->storage->bufferSinkContext, pBufferSink, "out", NULL, NULL, pFilterGraph)))
-				return hr;
-			AVFilterContext* pBufferSinkContext = this->storage->bufferSinkContext;
+				throw gcnew AVException(hr);
 
+			AVFilterContext* pBufferSinkContext = this->storage->bufferSinkContext;
 			AVCodecContext* pEncoderContext = this->storage->encoderContext;
 
 			hr = av_opt_set_bin(
@@ -197,7 +182,8 @@ namespace FFmpeg
 				sizeof(pEncoderContext->sample_fmt),
 				AV_OPT_SEARCH_CHILDREN
 			);
-			if (FAILED(hr)) return hr;
+			if (FAILED(hr)) throw gcnew AVException(hr);
+
 
 			hr = av_opt_set_bin(
 				pBufferSinkContext,
@@ -206,7 +192,7 @@ namespace FFmpeg
 				sizeof(pEncoderContext->channel_layout),
 				AV_OPT_SEARCH_CHILDREN
 			);
-			if (FAILED(hr)) return hr;
+			if (FAILED(hr)) throw gcnew AVException(hr);
 
 			hr = av_opt_set_bin(
 				pBufferSinkContext,
@@ -215,7 +201,7 @@ namespace FFmpeg
 				sizeof(pEncoderContext->sample_rate),
 				AV_OPT_SEARCH_CHILDREN
 			);
-			if (FAILED(hr)) return hr;
+			if (FAILED(hr)) throw gcnew AVException(hr);
 
 			pOutputs->name = av_strdup("in");
 			pOutputs->filter_ctx = pBufferSourceContext;
@@ -228,13 +214,13 @@ namespace FFmpeg
 			pInputs->next = NULL;
 
 			if (pOutputs->name == nullptr || pInputs->name == nullptr)
-				return E_OUTOFMEMORY;
+				throw gcnew OutOfMemoryException();
 
 			if (FAILED(hr = avfilter_graph_parse_ptr(pFilterGraph, "anull", &pInputs, &pOutputs, NULL)))
-				return hr;
+				throw gcnew AVException(hr);
 
 			if (FAILED(hr = avfilter_graph_config(pFilterGraph, NULL)))
-				return hr;
+				throw gcnew AVException(hr);
 
 			av_buffersink_set_frame_size(pBufferSinkContext, pEncoderContext->frame_size);
 		}
@@ -243,17 +229,20 @@ namespace FFmpeg
 			avfilter_inout_free(&pInputs);
 			avfilter_inout_free(&pOutputs);
 		}
-
-		return S_OK;
 	}
 	
-	inline HRESULT FFmpeg::DoStuff_()
+	inline void FFmpeg::DoStuff_()
 	{
 		AVFrame* pFrame = av_frame_alloc();
-		if (pFrame == nullptr) return E_OUTOFMEMORY;
+		if (pFrame == nullptr) throw gcnew OutOfMemoryException();
 
 		AVFrame* pFilterFrame = av_frame_alloc();
-		if (pFilterFrame == nullptr) return E_OUTOFMEMORY;
+		if (pFilterFrame == nullptr)
+		{
+			av_frame_free(&pFrame);
+
+			throw gcnew OutOfMemoryException();
+		}
 
 		AVPacket* pPacket = av_packet_alloc();
 		if (pPacket == nullptr)
@@ -261,28 +250,28 @@ namespace FFmpeg
 			av_frame_free(&pFrame);
 			av_frame_free(&pFilterFrame);
 
-			return E_OUTOFMEMORY;
+			throw gcnew OutOfMemoryException();
 		}
 
-		HRESULT hr = S_OK;
-
-		while (SUCCEEDED(av_read_frame(this->dataIn->formatContext, pPacket)))
+		try
 		{
-			if (pPacket->stream_index == this->streamIndex) 
-				this->DecodePacket_(pPacket, pFrame, pFilterFrame);
-			av_packet_unref(pPacket);
-		}
+			while (SUCCEEDED(av_read_frame(this->dataIn->formatContext, pPacket)))
+			{
+				if (pPacket->stream_index == this->streamIndex)
+					this->DecodePacket_(pPacket, pFrame, pFilterFrame);
+				av_packet_unref(pPacket);
+			}
 
-		this->FilterFrame_(NULL, pFilterFrame);
+			this->FilterFrame_(NULL, pFilterFrame);
 
-		if (this->storage->encoderContext->codec->capabilities & AV_CODEC_CAP_DELAY)
 			this->EncodeWriteFrame_(NULL);
-
-		av_packet_free(&pPacket);
-		av_frame_free(&pFilterFrame);
-		av_frame_free(&pFrame);
-
-		return hr;
+		}
+		finally
+		{
+			av_packet_free(&pPacket);
+			av_frame_free(&pFilterFrame);
+			av_frame_free(&pFrame);
+		}
 	}
 
 	inline void FFmpeg::DecodePacket_(AVPacket* pPacket, AVFrame* pFrame, AVFrame* pFilterFrame)

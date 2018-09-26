@@ -1,16 +1,14 @@
 ﻿#pragma once
 
+#include "IOContextWrapper.h"
+
 using namespace System;
 using namespace System::IO;
-
-#include <winerror.h>
 
 extern "C"
 {
 #include <libavformat/avformat.h>
 }
-
-#include "IOContextWrapper.h"
 
 namespace FFmpeg
 {
@@ -61,14 +59,14 @@ namespace FFmpeg
 
 		/**
 		 * Opens this FormatContextWrapper in reading mode.
-		 * Returns HRESULT of whether it was a success.
+		 * Throws on failure.
 		 */
-		HRESULT openRead();
+		void openRead();
 		/**
 		 * Opens this FormatContextWrapper in writing mode.
-		 * Returns HRESULT of whether it was a success.
+		 * Throws on failure.
 		 */
-		HRESULT openWrite();
+		void openWrite();
 	};
 }
 

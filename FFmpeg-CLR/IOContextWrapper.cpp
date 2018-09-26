@@ -15,33 +15,32 @@ namespace FFmpeg
 		av_freep(&pContext);
 	}
 	
-	HRESULT IOContextWrapper::open(bool write)
+	void IOContextWrapper::open(bool read)
 	{
-		if (this->opened_) return E_NOT_VALID_STATE;
+		if (this->opened_) throw gcnew InvalidOperationException("This IOContextWrapper had already been opened");
 		this->opened_ = true;
-		this->write_ = write;
 
 		// Freed in finalizer by av_freep(&this->ioContext->buffer) as libav relocates it at will
 		unsigned char* buffer = static_cast<unsigned char*>(av_malloc(BUFFERSIZE));
-		if (buffer == nullptr) return E_OUTOFMEMORY;
+		if (buffer == nullptr) throw gcnew OutOfMemoryException();
+
+		Stream^ stream = static_cast<Stream^>(this->handle_.Target);
 
 		this->ioContext = avio_alloc_context(
 			buffer,
 			BUFFERSIZE,
-			write ? 1 : 0,
+			stream->CanWrite ? 1 : 0,
 			GCHandle::ToIntPtr(this->handle_).ToPointer(),
-			write ? NULL : IO::ReadFunc,
-			write ? IO::WriteFunc : NULL,
-			write ? NULL: IO::SeekFunc
+			stream->CanRead ? IO::ReadFunc : NULL,
+			stream->CanWrite ? NULL : IO::WriteFunc,
+			stream->CanSeek ? IO::SeekFunc : IO::SeekFunc
 		);
 
 		if (this->ioContext == nullptr)
 		{
 			av_freep(&buffer);
 
-			return E_FAIL;
+			throw gcnew OutOfMemoryException();
 		}
-
-		return S_OK;
 	}
 }

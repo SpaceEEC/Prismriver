@@ -133,6 +133,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="AVException.h" />
     <ClInclude Include="FormatContextWrapper.h" />
     <ClInclude Include="FFmpeg-CLR.h" />
     <ClInclude Include="IO.h" />

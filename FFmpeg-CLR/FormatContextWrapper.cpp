@@ -1,4 +1,5 @@
 #include "FormatContextWrapper.h"
+#include "AVException.h"
 
 namespace FFmpeg
 {
@@ -36,43 +37,47 @@ namespace FFmpeg
 		}
 	}
 
-	HRESULT FormatContextWrapper::openRead()
+	void FormatContextWrapper::openRead()
 	{
-		if (this->opened_) return E_NOT_VALID_STATE;
+		if (this->opened_) throw gcnew InvalidOperationException("This FormatContextWrapper had already been opened.");
 		this->input_ = true;
 
-		HRESULT hr = S_OK;
-		if (this->ioContextWrapper_ != nullptr && FAILED(hr = this->ioContextWrapper_->openRead()))
-			return hr;
+		if (this->ioContextWrapper_ != nullptr) this->ioContextWrapper_->openRead(); // Throws on failure
 
 		AVFormatContext* pFormatContext = this->formatContext = avformat_alloc_context();
-		if (this->formatContext == nullptr) return E_OUTOFMEMORY;
+		if (this->formatContext == nullptr) throw gcnew OutOfMemoryException();
 
 		if (this->ioContextWrapper_ != nullptr) formatContext->pb = this->ioContextWrapper_->ioContext;
 
-		return avformat_open_input(&pFormatContext, this->file_, NULL, NULL);
+		HRESULT hr = avformat_open_input(&pFormatContext, this->file_, NULL, NULL);
+		if (FAILED(hr))
+			throw gcnew AVException(hr);
 	}
 
-	HRESULT FormatContextWrapper::openWrite()
+	void FormatContextWrapper::openWrite()
 	{
-		if (this->opened_) return E_NOT_VALID_STATE;
+		if (this->opened_) throw gcnew InvalidOperationException("This FormatContextWrapper had already been opened.");
 
 		AVOutputFormat* pOutputFormat = av_guess_format(this->file_ == nullptr ? "flac" : NULL, this->file_, NULL);
-		if (pOutputFormat == nullptr) return E_FAIL;
+		if (pOutputFormat == nullptr) return throw gcnew Exception("Could not find a suitable output format");
 
 		HRESULT hr = S_OK;
 	
 		AVFormatContext* pFormatContext = nullptr;
 		if (FAILED(hr = avformat_alloc_output_context2(&pFormatContext, pOutputFormat, NULL, this->file_)))
-			return hr;
+			throw gcnew AVException(hr);
 
 		if (this->ioContextWrapper_ != nullptr)
 		{
-			if (FAILED(hr = this->ioContextWrapper_->openWrite()))
+			try
+			{
+				this->ioContextWrapper_->openWrite();
+			}
+			catch (Exception^ e)
 			{
 				avformat_free_context(pFormatContext);
 
-				return hr;
+				throw e;
 			}
 
 			pFormatContext->pb = this->ioContextWrapper_->ioContext;
@@ -83,11 +88,10 @@ namespace FFmpeg
 			{
 				avformat_free_context(pFormatContext);
 
-				return hr;
+				throw gcnew AVException(hr);
 			}
 		}
 
 		this->formatContext = pFormatContext;
-		return hr;
 	}
 }

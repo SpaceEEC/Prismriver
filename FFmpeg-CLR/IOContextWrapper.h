@@ -1,7 +1,5 @@
 #pragma once
 
-#include <winerror.h>
-
 extern "C"
 {
 #include <libavutil/mem.h>
@@ -29,11 +27,6 @@ namespace FFmpeg
 		bool opened_ = false;
 
 		/**
-		 * Whether this IOContextWrapper wraps an output stream.
-		 */
-		bool write_ = false;
-
-		/**
 		 * The GCHandle of the wrapped stream.
 		 */
 		GCHandle handle_;
@@ -41,7 +34,7 @@ namespace FFmpeg
 		/**
 		 * Opens the AVIOContext in the passed mode.
 		 */
-		HRESULT open(bool write);
+		void open(bool write);
 	public:
 		/**
 		 * The wrapped AVIOContext, will be nullptr if not opened yet.
@@ -58,12 +51,14 @@ namespace FFmpeg
 
 		/**
 		 * Opens this IOContextWrapper in read mode.
+		 * Throws on failure.
 		 */
-		HRESULT openRead() { return this->open(false); }
+		void openRead() { this->open(true); }
 
 		/**
 		 * Opens this IOContextWrapper in write mode.
+		 * Throws on failure.
 		 */
-		HRESULT openWrite() { return this->open(true); }
+		void openWrite() { this->open(false); }
 	};
 }

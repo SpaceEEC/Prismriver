@@ -16,8 +16,7 @@ namespace FFmpeg
 
 	Dictionary<String^, String^>^ FFmpeg::GetMetaData_(FormatContextWrapper% wrapper)
 	{
-		if (FAILED(wrapper.openRead()))
-			throw gcnew Exception("Failed to open input stream.");
+		wrapper.openRead();
 
 		Dictionary<String^, String^>^ dict = gcnew Dictionary<String^, String^>();
 
