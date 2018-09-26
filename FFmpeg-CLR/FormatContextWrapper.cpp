@@ -17,9 +17,9 @@ namespace FFmpeg
 			}
 			else
 			{
-				if (this->file_ != nullptr) avio_closep(&pContext->pb);
-
+				avio_closep(&pContext->pb);
 				avformat_free_context(pContext);
+
 				this->formatContext = nullptr;
 			}
 		}
@@ -47,12 +47,14 @@ namespace FFmpeg
 		this->opened_ = true;
 		this->input_ = true;
 
-		if (this->ioContextWrapper_ != nullptr) this->ioContextWrapper_->openRead(); // Throws on failure
-
 		AVFormatContext* pFormatContext = this->formatContext = avformat_alloc_context();
 		if (this->formatContext == nullptr) throw gcnew OutOfMemoryException();
 
-		if (this->ioContextWrapper_ != nullptr) formatContext->pb = this->ioContextWrapper_->ioContext;
+		if (this->ioContextWrapper_ != nullptr)
+		{
+			this->ioContextWrapper_->openRead(); // Throws on failure
+			formatContext->pb = this->ioContextWrapper_->ioContext;
+		}
 
 		HRESULT hr = avformat_open_input(&pFormatContext, this->file_, nullptr, nullptr);
 		if (FAILED(hr)) throw gcnew AVException(hr);
