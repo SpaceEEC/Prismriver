@@ -35,11 +35,16 @@ namespace FFmpeg
 			delete this->ioContextWrapper_;
 			this->ioContextWrapper_ = nullptr;
 		}
+
+		if (this->format_ != nullptr)
+			Marshal::FreeHGlobal(static_cast<IntPtr>(const_cast<char*>(this->format_)));
+
 	}
 
 	void FormatContextWrapper::openRead()
 	{
 		if (this->opened_) throw gcnew InvalidOperationException("This FormatContextWrapper had already been opened.");
+		this->opened_ = true;
 		this->input_ = true;
 
 		if (this->ioContextWrapper_ != nullptr) this->ioContextWrapper_->openRead(); // Throws on failure
@@ -50,16 +55,20 @@ namespace FFmpeg
 		if (this->ioContextWrapper_ != nullptr) formatContext->pb = this->ioContextWrapper_->ioContext;
 
 		HRESULT hr = avformat_open_input(&pFormatContext, this->file_, NULL, NULL);
-		if (FAILED(hr))
-			throw gcnew AVException(hr);
+		if (FAILED(hr)) throw gcnew AVException(hr);
 	}
 
 	void FormatContextWrapper::openWrite()
 	{
 		if (this->opened_) throw gcnew InvalidOperationException("This FormatContextWrapper had already been opened.");
+		this->opened_ = true;
 
-		AVOutputFormat* pOutputFormat = av_guess_format(this->file_ == nullptr ? "flac" : NULL, this->file_, NULL);
-		if (pOutputFormat == nullptr) return throw gcnew Exception("Could not find a suitable output format");
+		if (this->format_ == nullptr && this->file_ == nullptr)
+			throw gcnew InvalidOperationException("If wrapping an output stream, explicitly setting an output format is required.");
+
+		AVOutputFormat* pOutputFormat = av_guess_format(this->format_, this->file_, NULL);
+
+		if (pOutputFormat == nullptr) return throw gcnew Exception("Could not find a suitable output format from the file name or set output format.");
 
 		HRESULT hr = S_OK;
 	

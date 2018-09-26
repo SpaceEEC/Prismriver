@@ -14,33 +14,61 @@ extern "C"
 
 namespace FFmpeg
 {
-	FFmpeg::FFmpeg(Stream^ streamIn, Stream^ streamOut)
-		: storage(new Storage()),
-		dataIn(gcnew FormatContextWrapper(streamIn)),
-		dataOut(gcnew FormatContextWrapper(streamOut)) {}
-
-	FFmpeg::FFmpeg(Stream^ streamIn, String^ fileOut)
-		: storage(new Storage()),
-		dataIn(gcnew FormatContextWrapper(streamIn)),
-		dataOut(gcnew FormatContextWrapper(fileOut)) {}
-
-	FFmpeg::FFmpeg(String^ fileIn, String^ fileOut)
-		: storage(new Storage()),
-		dataIn(gcnew FormatContextWrapper(fileIn)),
-		dataOut(gcnew FormatContextWrapper(fileOut)) {}
-
-	FFmpeg::FFmpeg(String^ fileIn, Stream^ streamOut)
-		: storage(new Storage()),
-		dataIn(gcnew FormatContextWrapper(fileIn)),
-		dataOut(gcnew FormatContextWrapper(streamOut)) {}
-
+	FFmpeg::FFmpeg() : storage(new Storage()) {}
 	FFmpeg::~FFmpeg() { this->!FFmpeg(); }
 	FFmpeg::!FFmpeg()
 	{
 		GC::SuppressFinalize(this);
+		delete this->format_;
 		delete this->storage;
 		delete this->dataIn;
 		delete this->dataOut;
+	}
+
+	FFmpeg^ FFmpeg::SetIn(Stream^ stream)
+	{
+		if (this->dataIn != nullptr) delete this->dataIn;
+
+		this->dataIn = gcnew FormatContextWrapper(stream);
+
+		return this;
+	}
+	FFmpeg^ FFmpeg::SetIn(String^ string)
+	{
+		if (this->dataIn != nullptr) delete this->dataOut;
+
+		this->dataIn = gcnew FormatContextWrapper(string);
+		return this;
+	}
+
+	FFmpeg^ FFmpeg::SetOut(Stream^ stream)
+	{
+		if (this->dataOut != nullptr) delete this->dataOut;
+
+		this->dataOut = gcnew FormatContextWrapper(stream);
+
+		if (this->format_) this->dataOut->setOutFormat(this->format_);
+
+		return this;
+	}
+	FFmpeg^ FFmpeg::SetOut(String^ string)
+	{
+		if (this->dataOut != nullptr) delete this->dataOut;
+
+		this->dataOut = gcnew FormatContextWrapper(string);
+
+		if (this->format_) this->dataOut->setOutFormat(this->format_);
+
+		return this;
+	}
+
+	FFmpeg^ FFmpeg::SetOutFormat(String^ format)
+	{
+		this->format_ = format;
+
+		if (this->dataOut) this->dataOut->setOutFormat(this->format_);
+
+		return this;
 	}
 
 	void FFmpeg::DoStuff()

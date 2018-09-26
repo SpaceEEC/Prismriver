@@ -30,6 +30,11 @@ namespace FFmpeg
 		const char* file_ = nullptr;
 
 		/**
+		 * Used to overwrite the output format
+		 */
+		const char* format_ = nullptr;
+
+		/**
 		 * Whether this FormatContextWrapper had already been opened.
 		 */
 		bool opened_ = false;
@@ -38,6 +43,13 @@ namespace FFmpeg
 		 * Whether this FormatContextWrapper wraps an input context.
 		 */
 		bool input_ = false;
+
+	internal:
+		/**
+		 * Overrides the output format
+		 */
+		void setOutFormat(String^ format) { this->format_ = static_cast<const char*>(Marshal::StringToHGlobalAnsi(format).ToPointer()); }
+
 	public:
 		/**
 		 * Instantiates a new FormatContextWrapper wrapping a Stream.
