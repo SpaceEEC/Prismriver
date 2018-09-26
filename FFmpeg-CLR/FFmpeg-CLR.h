@@ -20,15 +20,6 @@ namespace FFmpeg
 	{
 	public:
 		/**
-		 * Gets the metadata from a stream.
-		 */
-		static Dictionary<String^, String^>^ GetMetaData(Stream^ stream);
-		/**
-		 * Gets the metadata from a file.
-		 */
-		static Dictionary<String^, String^>^ GetMetaData(String^ file);
-
-		/**
 		 * Instantiates a new FFmpeg.
 		 */
 		FFmpeg();
@@ -60,9 +51,7 @@ namespace FFmpeg
 
 		void DoStuff();
 
-	private:
-		static Dictionary<String^, String^>^ GetMetaData_(FormatContextWrapper% file);
-	
+	private:	
 		~FFmpeg();
 		!FFmpeg();
 

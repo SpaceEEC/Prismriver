@@ -29,6 +29,9 @@
     <ClInclude Include="AVException.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="MetaData.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="FFmpeg-CLR.cpp">
@@ -40,9 +43,6 @@
     <ClCompile Include="Storage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="FFmpeg-MetaData.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="IOContextWrapper.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -50,6 +50,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="IO.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="MetaData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
