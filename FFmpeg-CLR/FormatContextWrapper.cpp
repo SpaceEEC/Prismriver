@@ -77,7 +77,8 @@ namespace FFmpeg
 			{
 				avformat_free_context(pFormatContext);
 
-				throw e;
+				// Wrap in another exception to keep the stacktrace.
+				throw gcnew Exception("Opening the output IOContextWrapper failed.", e);
 			}
 
 			pFormatContext->pb = this->ioContextWrapper_->ioContext;
