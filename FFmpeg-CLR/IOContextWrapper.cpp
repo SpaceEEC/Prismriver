@@ -26,6 +26,9 @@ namespace FFmpeg
 
 		Stream^ stream = static_cast<Stream^>(this->handle_.Target);
 
+		if (read && !stream->CanRead) throw gcnew InvalidOperationException("The supplied stream is not readable.");
+		if (!read && !stream->CanWrite) throw gcnew InvalidOperationException("The supplied stream is not writable.");
+
 		this->ioContext = avio_alloc_context(
 			buffer,
 			BUFFERSIZE,
