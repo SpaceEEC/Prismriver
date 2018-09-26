@@ -126,6 +126,7 @@ namespace FFmpeg
 
 		AVCodecContext* pDecoderContext = this->storage->decoderContext;
 
+		pEncoderContext->bit_rate = pDecoderContext->bit_rate;
 		pEncoderContext->sample_rate = pDecoderContext->sample_rate;
 		pEncoderContext->channel_layout = pDecoderContext->channel_layout;
 		pEncoderContext->channels = av_get_channel_layout_nb_channels(pEncoderContext->channel_layout);
