@@ -54,7 +54,7 @@ namespace FFmpeg
 
 		if (this->ioContextWrapper_ != nullptr) formatContext->pb = this->ioContextWrapper_->ioContext;
 
-		HRESULT hr = avformat_open_input(&pFormatContext, this->file_, NULL, NULL);
+		HRESULT hr = avformat_open_input(&pFormatContext, this->file_, nullptr, nullptr);
 		if (FAILED(hr)) throw gcnew AVException(hr);
 	}
 
@@ -66,14 +66,14 @@ namespace FFmpeg
 		if (this->format_ == nullptr && this->file_ == nullptr)
 			throw gcnew InvalidOperationException("If wrapping an output stream, explicitly setting an output format is required.");
 
-		AVOutputFormat* pOutputFormat = av_guess_format(this->format_, this->file_, NULL);
+		AVOutputFormat* pOutputFormat = av_guess_format(this->format_, this->file_, nullptr);
 
 		if (pOutputFormat == nullptr) return throw gcnew Exception("Could not find a suitable output format from the file name or set output format.");
 
 		HRESULT hr = S_OK;
 	
 		AVFormatContext* pFormatContext = nullptr;
-		if (FAILED(hr = avformat_alloc_output_context2(&pFormatContext, pOutputFormat, NULL, this->file_)))
+		if (FAILED(hr = avformat_alloc_output_context2(&pFormatContext, pOutputFormat, nullptr, this->file_)))
 			throw gcnew AVException(hr);
 
 		if (this->ioContextWrapper_ != nullptr)

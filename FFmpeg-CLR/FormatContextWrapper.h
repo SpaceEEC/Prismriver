@@ -25,7 +25,7 @@ namespace FFmpeg
 		IOContextWrapper^ ioContextWrapper_ = nullptr;
 
 		/**
-		 * The file path of the input file, or NULL if none.
+		 * The file path of the input file, or nullptr if none.
 		 */
 		const char* file_ = nullptr;
 

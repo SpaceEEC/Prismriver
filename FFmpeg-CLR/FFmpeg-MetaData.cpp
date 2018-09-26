@@ -20,7 +20,7 @@ namespace FFmpeg
 
 		Dictionary<String^, String^>^ dict = gcnew Dictionary<String^, String^>();
 
-		AVDictionaryEntry* tag = NULL;
+		AVDictionaryEntry* tag = nullptr;
 		while ((tag = av_dict_get(wrapper.formatContext->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
 			dict->Add(gcnew String(tag->key), gcnew String(tag->value));
 

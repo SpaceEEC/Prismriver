@@ -34,9 +34,9 @@ namespace FFmpeg
 			BUFFERSIZE,
 			stream->CanWrite ? 1 : 0,
 			GCHandle::ToIntPtr(this->handle_).ToPointer(),
-			stream->CanRead ? IO::ReadFunc : NULL,
-			stream->CanWrite ? IO::WriteFunc : NULL,
-			stream->CanSeek ? IO::SeekFunc : NULL
+			stream->CanRead ? IO::ReadFunc : nullptr,
+			stream->CanWrite ? IO::WriteFunc : nullptr,
+			stream->CanSeek ? IO::SeekFunc : nullptr
 		);
 
 		if (this->ioContext == nullptr)
