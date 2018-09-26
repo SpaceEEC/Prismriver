@@ -18,10 +18,20 @@ namespace FFmpeg
 		dataIn(gcnew FormatContextWrapper(streamIn)),
 		dataOut(gcnew FormatContextWrapper(streamOut)) {}
 
+	FFmpeg::FFmpeg(Stream^ streamIn, String^ fileOut)
+		: storage(new Storage()),
+		dataIn(gcnew FormatContextWrapper(streamIn)),
+		dataOut(gcnew FormatContextWrapper(fileOut)) {}
+
 	FFmpeg::FFmpeg(String^ fileIn, String^ fileOut)
 		: storage(new Storage()),
 		dataIn(gcnew FormatContextWrapper(fileIn)),
 		dataOut(gcnew FormatContextWrapper(fileOut)) {}
+
+	FFmpeg::FFmpeg(String^ fileIn, Stream^ streamOut)
+		: storage(new Storage()),
+		dataIn(gcnew FormatContextWrapper(fileIn)),
+		dataOut(gcnew FormatContextWrapper(streamOut)) {}
 
 	FFmpeg::~FFmpeg() { this->!FFmpeg(); }
 	FFmpeg::!FFmpeg()

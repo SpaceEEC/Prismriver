@@ -26,7 +26,10 @@ namespace FFmpeg
 		static Dictionary<String^, String^>^ GetMetaData(String^ file);
 
 		FFmpeg(Stream^ streamIn, Stream^ streamOut);
+		FFmpeg(Stream^ streamIn, String^ fileOut);
+
 		FFmpeg(String^ fileIn, String^ fileOut);
+		FFmpeg(String^ fileIn, Stream^ streamOut);
 		void DoStuff();
 
 	private:
