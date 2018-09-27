@@ -1,4 +1,4 @@
-#include "FFmpeg-CLR.h"
+#include "Transcoder.h"
 #include "FormatContextWrapper.h"
 #include "AVException.h"
 
@@ -14,9 +14,9 @@ extern "C"
 
 namespace FFmpeg
 {
-	FFmpeg::FFmpeg() : storage(new Storage()) {}
-	FFmpeg::~FFmpeg() { this->!FFmpeg(); }
-	FFmpeg::!FFmpeg()
+	Transcoder::Transcoder() : storage(new Storage()) {}
+	Transcoder::~Transcoder() { this->!Transcoder(); }
+	Transcoder::!Transcoder()
 	{
 		GC::SuppressFinalize(this);
 		delete this->format_;
@@ -25,7 +25,7 @@ namespace FFmpeg
 		delete this->dataOut;
 	}
 
-	FFmpeg^ FFmpeg::SetIn(Stream^ stream)
+	Transcoder^ Transcoder::SetIn(Stream^ stream)
 	{
 		if (this->dataIn != nullptr) delete this->dataIn;
 
@@ -33,7 +33,7 @@ namespace FFmpeg
 
 		return this;
 	}
-	FFmpeg^ FFmpeg::SetIn(String^ string)
+	Transcoder^ Transcoder::SetIn(String^ string)
 	{
 		if (this->dataIn != nullptr) delete this->dataOut;
 
@@ -41,7 +41,7 @@ namespace FFmpeg
 		return this;
 	}
 
-	FFmpeg^ FFmpeg::SetOut(Stream^ stream)
+	Transcoder^ Transcoder::SetOut(Stream^ stream)
 	{
 		if (this->dataOut != nullptr) delete this->dataOut;
 
@@ -51,7 +51,7 @@ namespace FFmpeg
 
 		return this;
 	}
-	FFmpeg^ FFmpeg::SetOut(String^ string)
+	Transcoder^ Transcoder::SetOut(String^ string)
 	{
 		if (this->dataOut != nullptr) delete this->dataOut;
 
@@ -62,7 +62,7 @@ namespace FFmpeg
 		return this;
 	}
 
-	FFmpeg^ FFmpeg::SetOutFormat(String^ format)
+	Transcoder^ Transcoder::SetOutFormat(String^ format)
 	{
 		this->format_ = format;
 
@@ -71,7 +71,7 @@ namespace FFmpeg
 		return this;
 	}
 
-	void FFmpeg::DoStuff()
+	void Transcoder::DoStuff()
 	{
 		this->InitInput_();
 		this->InitOutput_();
@@ -79,7 +79,7 @@ namespace FFmpeg
 		this->DoStuff_();
 	}
 
-	inline void FFmpeg::InitInput_()
+	inline void Transcoder::InitInput_()
 	{
 		this->dataIn->openRead();
 
@@ -110,7 +110,7 @@ namespace FFmpeg
 		logging("Codec name: %s", pCodecContext->codec_descriptor->long_name);
 	}
 
-	inline void FFmpeg::InitOutput_()
+	inline void Transcoder::InitOutput_()
 	{
 		this->dataOut->openWrite();
 
@@ -153,7 +153,7 @@ namespace FFmpeg
 			throw gcnew AVException(hr);
 	}
 
-	inline void FFmpeg::InitFilter_()
+	inline void Transcoder::InitFilter_()
 	{
 		const AVFilter* pBufferSource = nullptr;
 		const AVFilter* pBufferSink = nullptr;
@@ -260,7 +260,7 @@ namespace FFmpeg
 		}
 	}
 	
-	inline void FFmpeg::DoStuff_()
+	inline void Transcoder::DoStuff_()
 	{
 		AVFrame* pFrame = av_frame_alloc();
 		if (pFrame == nullptr) throw gcnew OutOfMemoryException();
@@ -307,7 +307,7 @@ namespace FFmpeg
 		}
 	}
 
-	inline void FFmpeg::DecodePacket_(AVPacket* pPacket, AVFrame* pFrame, AVFrame* pFilterFrame)
+	inline void Transcoder::DecodePacket_(AVPacket* pPacket, AVFrame* pFrame, AVFrame* pFilterFrame)
 	{
 		AVCodecContext* pDecoderContext = this->storage->decoderContext;
 
@@ -332,7 +332,7 @@ namespace FFmpeg
 		} while (true);
 	}
 
-	inline void FFmpeg::FilterFrame_(AVFrame* pFrame, AVFrame* pFilterFrame)
+	inline void Transcoder::FilterFrame_(AVFrame* pFrame, AVFrame* pFilterFrame)
 	{
 		av_buffersrc_add_frame_flags(this->storage->bufferSourceContext, pFrame, 0);
 
@@ -349,7 +349,7 @@ namespace FFmpeg
 		} while (true);
 	}
 
-	inline void FFmpeg::EncodeWriteFrame_(AVFrame* pFilterFrame)
+	inline void Transcoder::EncodeWriteFrame_(AVFrame* pFilterFrame)
 	{
 		AVPacket* encodedPacket = av_packet_alloc();
 

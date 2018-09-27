@@ -11,9 +11,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="FFmpeg-CLR.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="Storage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -32,11 +29,11 @@
     <ClInclude Include="MetaData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="Transcoder.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="FFmpeg-CLR.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="AssemblyInfo.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -53,6 +50,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="MetaData.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Transcoder.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

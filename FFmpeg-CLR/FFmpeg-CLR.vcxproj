@@ -135,7 +135,7 @@
   <ItemGroup>
     <ClInclude Include="AVException.h" />
     <ClInclude Include="FormatContextWrapper.h" />
-    <ClInclude Include="FFmpeg-CLR.h" />
+    <ClInclude Include="Transcoder.h" />
     <ClInclude Include="IO.h" />
     <ClInclude Include="MetaData.h" />
     <ClInclude Include="Storage.h" />
@@ -146,7 +146,7 @@
     <ClCompile Include="FormatContextWrapper.cpp" />
     <ClCompile Include="IO.cpp" />
     <ClCompile Include="IOContextWrapper.cpp" />
-    <ClCompile Include="FFmpeg-CLR.cpp" />
+    <ClCompile Include="Transcoder.cpp" />
     <ClCompile Include="MetaData.cpp" />
     <ClCompile Include="Storage.cpp" />
   </ItemGroup>
