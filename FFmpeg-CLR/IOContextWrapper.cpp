@@ -4,15 +4,11 @@
 
 namespace FFmpeg
 {
-	IOContextWrapper::!IOContextWrapper()
+	IOContextWrapper::~IOContextWrapper()
 	{
-		GC::SuppressFinalize(this);
-
-		this->handle_.Free();
+		static_cast<GCHandle>(static_cast<IntPtr>(this->handle_)).Free();
 		av_freep(&this->ioContext->buffer);
-		pin_ptr<AVIOContext> context = this->ioContext;
-		AVIOContext* pContext = context;
-		av_freep(&pContext);
+		av_freep(&this->ioContext);
 	}
 	
 	void IOContextWrapper::open(bool read)
@@ -24,7 +20,7 @@ namespace FFmpeg
 		unsigned char* buffer = static_cast<unsigned char*>(av_malloc(BUFFERSIZE));
 		if (buffer == nullptr) throw gcnew OutOfMemoryException();
 
-		Stream^ stream = static_cast<Stream^>(this->handle_.Target);
+		Stream^ stream = static_cast<Stream^>(static_cast<GCHandle>(static_cast<IntPtr>(this->handle_)).Target);
 
 		if (read && !stream->CanRead) throw gcnew InvalidOperationException("The supplied stream is not readable.");
 		if (!read && !stream->CanWrite) throw gcnew InvalidOperationException("The supplied stream is not writable.");
@@ -33,7 +29,7 @@ namespace FFmpeg
 			buffer,
 			BUFFERSIZE,
 			stream->CanWrite ? 1 : 0,
-			GCHandle::ToIntPtr(this->handle_).ToPointer(),
+			this->handle_,
 			stream->CanRead ? IO::ReadFunc : nullptr,
 			stream->CanWrite ? IO::WriteFunc : nullptr,
 			stream->CanSeek ? IO::SeekFunc : nullptr

@@ -12,10 +12,11 @@ namespace FFmpeg
 		return MetaData::Get_(FormatContextWrapper(file));
 	}
 
-	Dictionary<String^, String^>^ MetaData::Get_(FormatContextWrapper% wrapper)
+	Dictionary<String^, String^>^ MetaData::Get_(FormatContextWrapper& wrapper)
 	{
 		wrapper.openRead();
 
+		return nullptr;
 		Dictionary<String^, String^>^ dict = gcnew Dictionary<String^, String^>();
 
 		AVDictionaryEntry* tag = nullptr;
@@ -36,9 +37,10 @@ namespace FFmpeg
 		return MetaData::GetThumbnail_(FormatContextWrapper(stream));
 	}
 
-	Tuple<String^, array<unsigned char>^>^ MetaData::GetThumbnail_(FormatContextWrapper% wrapper)
+	Tuple<String^, array<unsigned char>^>^ MetaData::GetThumbnail_(FormatContextWrapper& wrapper)
 	{
 		wrapper.openRead();
+
 
 		int streamIndex = av_find_best_stream(wrapper.formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
 		if (streamIndex == AVERROR_STREAM_NOT_FOUND) return nullptr;
@@ -54,6 +56,7 @@ namespace FFmpeg
 				: ".jpeg";
 
 		array<unsigned char>^ buffer = gcnew array<unsigned char>(stream->attached_pic.size);
+		return nullptr;
 		pin_ptr<unsigned char> pinned = &buffer[0];
 
 		memcpy_s(

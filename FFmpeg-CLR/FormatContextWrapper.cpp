@@ -3,23 +3,19 @@
 
 namespace FFmpeg
 {
-	FormatContextWrapper::!FormatContextWrapper()
+	FormatContextWrapper::~FormatContextWrapper()
 	{
-		GC::SuppressFinalize(this);
-
 		if (this->formatContext != nullptr)
 		{
-			pin_ptr<AVFormatContext> context = this->formatContext;
-			AVFormatContext* pContext = context;
 			if (this->input_)
 			{
-				avformat_close_input(&pContext);
+				avformat_close_input(&this->formatContext);
 			}
 			else
 			{
-				avio_closep(&pContext->pb);
-				avformat_free_context(pContext);
-
+				if ((this->ioContextWrapper_ == nullptr) && ((this->formatContext->oformat->flags & AVFMT_NOFILE) == 0))
+					avio_closep(&this->formatContext->pb);
+				avformat_free_context(this->formatContext);
 				this->formatContext = nullptr;
 			}
 		}

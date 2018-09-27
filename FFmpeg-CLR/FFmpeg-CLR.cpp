@@ -29,7 +29,7 @@ namespace FFmpeg
 	{
 		if (this->dataIn != nullptr) delete this->dataIn;
 
-		this->dataIn = gcnew FormatContextWrapper(stream);
+		this->dataIn = new FormatContextWrapper(stream);
 
 		return this;
 	}
@@ -37,7 +37,7 @@ namespace FFmpeg
 	{
 		if (this->dataIn != nullptr) delete this->dataOut;
 
-		this->dataIn = gcnew FormatContextWrapper(string);
+		this->dataIn = new FormatContextWrapper(string);
 		return this;
 	}
 
@@ -45,7 +45,7 @@ namespace FFmpeg
 	{
 		if (this->dataOut != nullptr) delete this->dataOut;
 
-		this->dataOut = gcnew FormatContextWrapper(stream);
+		this->dataOut = new FormatContextWrapper(stream);
 
 		if (this->format_) this->dataOut->setOutFormat(this->format_);
 
@@ -55,7 +55,7 @@ namespace FFmpeg
 	{
 		if (this->dataOut != nullptr) delete this->dataOut;
 
-		this->dataOut = gcnew FormatContextWrapper(string);
+		this->dataOut = new FormatContextWrapper(string);
 
 		if (this->format_) this->dataOut->setOutFormat(this->format_);
 

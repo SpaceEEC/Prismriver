@@ -31,7 +31,7 @@ namespace FFmpeg
 		 */
 		static Tuple<String^, array<unsigned char>^>^ GetThumbnail(String^ file);
 	private:
-		static Dictionary<String^, String^>^ Get_(FormatContextWrapper% context);
-		static Tuple<String^, array<unsigned char>^>^ GetThumbnail_(FormatContextWrapper% context);
+		static Dictionary<String^, String^>^ Get_(FormatContextWrapper& context);
+		static Tuple<String^, array<unsigned char>^>^ GetThumbnail_(FormatContextWrapper& context);
 	};
 }

@@ -14,12 +14,13 @@ namespace FFmpeg
 {
 	static const int BUFFERSIZE = 16 * 1024;
 
-	private ref struct IOContextWrapper
+	private struct IOContextWrapper
 	{
 	private:
-		// No copy constructor or assign operator
-		IOContextWrapper(const IOContextWrapper% other) { throw gcnew NotSupportedException(); }
-		IOContextWrapper% operator=(const IOContextWrapper% other) { throw gcnew NotSupportedException(); }
+		// No default or copy constructor or assign operator
+		IOContextWrapper() = delete;
+		IOContextWrapper(const IOContextWrapper& other) = delete;
+		IOContextWrapper& operator=(const IOContextWrapper& other) = delete;
 
 		/**
 		 * Whether this IOContextWrapper had already been opened.
@@ -27,14 +28,15 @@ namespace FFmpeg
 		bool opened_ = false;
 
 		/**
-		 * The GCHandle of the wrapped stream.
+		 * Pointer to the GCHandle of the wrapped stream.
 		 */
-		GCHandle handle_;
+		void* handle_;
 
 		/**
 		 * Opens the AVIOContext in the passed mode.
 		 */
 		void open(bool write);
+
 	public:
 		/**
 		 * The wrapped AVIOContext, will be nullptr if not opened yet.
@@ -44,10 +46,9 @@ namespace FFmpeg
 		/**
 		 * Instantiates a new IOContextWrapper.
 		 */
-		IOContextWrapper(Stream^ stream) : handle_(GCHandle::Alloc(stream)) {}
+		IOContextWrapper(Stream^ stream) : handle_(static_cast<void*>(static_cast<IntPtr>(GCHandle::Alloc(stream)))) { }
 
-		~IOContextWrapper() { this->!IOContextWrapper(); }
-		!IOContextWrapper();
+		~IOContextWrapper();
 
 		/**
 		 * Opens this IOContextWrapper in read mode.

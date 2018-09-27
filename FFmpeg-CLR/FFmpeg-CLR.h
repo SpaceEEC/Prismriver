@@ -68,11 +68,11 @@ namespace FFmpeg
 		/**
 		 * Holds the relevant AV* classes for the input.
 		 */
-		FormatContextWrapper^ dataIn;
+		FormatContextWrapper* dataIn;
 		/**
 		 * Holds the relevant AV* classes for the output.
 		 */
-		FormatContextWrapper^ dataOut;
+		FormatContextWrapper* dataOut;
 
 		/**
 		 * The index to the audio stream being read from.

@@ -12,17 +12,18 @@ extern "C"
 
 namespace FFmpeg
 {
-	private ref class FormatContextWrapper
+	private class FormatContextWrapper
 	{
 	private:
-		// No copy constructor or assign operator
-		FormatContextWrapper(const FormatContextWrapper% other) { throw gcnew NotSupportedException(); }
-		FormatContextWrapper% operator=(const FormatContextWrapper% other) { throw gcnew NotSupportedException(); }
+		// No default or copy constructor or assign operator
+		FormatContextWrapper() = delete;
+		FormatContextWrapper(const FormatContextWrapper& other) = delete;
+		FormatContextWrapper& operator=(const FormatContextWrapper% other) = delete;
 
 		/**
 		 * The IOContextWrapper of this FormatContextWrapper, or nullptr if none.
 		 */
-		IOContextWrapper^ ioContextWrapper_ = nullptr;
+		IOContextWrapper* ioContextWrapper_ = nullptr;
 
 		/**
 		 * The file path of the input file, or nullptr if none.
@@ -44,30 +45,29 @@ namespace FFmpeg
 		 */
 		bool input_ = false;
 
-	internal:
-		/**
-		 * Overrides the output format
-		 */
-		void setOutFormat(String^ format) { this->format_ = static_cast<const char*>(Marshal::StringToHGlobalAnsi(format).ToPointer()); }
-
 	public:
+
 		/**
 		 * Instantiates a new FormatContextWrapper wrapping a Stream.
 		 */
-		FormatContextWrapper(Stream^ stream) : ioContextWrapper_(gcnew IOContextWrapper(stream)) {}
+		FormatContextWrapper(Stream^ stream) : ioContextWrapper_(new IOContextWrapper(stream)) {}
 		/**
 		 * Instantiates a new FormatContextWrapper using a file path.
 		 */
 		FormatContextWrapper(String^ file) : file_(static_cast<const char*>(Marshal::StringToHGlobalAnsi(file).ToPointer())) {}
 
-		~FormatContextWrapper() { this->!FormatContextWrapper(); }
-		!FormatContextWrapper();
+		~FormatContextWrapper();
 
 		/**
 		 * The AVFormatContext of this FormatContextWrapper
 		 * Will be nullptr if not opened via openRead or openWrite.
 		 */
 		AVFormatContext* formatContext = nullptr;
+
+		/**
+		 * Overrides the output format
+		 */
+		void setOutFormat(String^ format) { if (this->format_ == nullptr) this->format_ = static_cast<const char*>(Marshal::StringToHGlobalAnsi(format).ToPointer()); }
 
 		/**
 		 * Opens this FormatContextWrapper in reading mode.
