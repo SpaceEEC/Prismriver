@@ -20,7 +20,18 @@ namespace FFmpeg
 		 */
 		static Dictionary<String^, String^>^ Get(String^ file);
 
+		/**
+		 * Gets the thumbnail from a stream.
+		 * Returns null if none was found.
+		 */
+		static Tuple<String^, array<unsigned char>^>^ GetThumbnail(Stream^ stream);
+		/**
+		 * Gets the thumbnail from a file.
+		 * Returns null if none was found.
+		 */
+		static Tuple<String^, array<unsigned char>^>^ GetThumbnail(String^ file);
 	private:
-		static Dictionary<String^, String^>^ Get_(FormatContextWrapper% file);
+		static Dictionary<String^, String^>^ Get_(FormatContextWrapper% context);
+		static Tuple<String^, array<unsigned char>^>^ GetThumbnail_(FormatContextWrapper% context);
 	};
 }
