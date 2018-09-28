@@ -1,4 +1,5 @@
 #include "MetaData.h"
+#include "Utils.h"
 
 namespace FFmpeg
 {
@@ -16,12 +17,11 @@ namespace FFmpeg
 	{
 		wrapper.openRead();
 
-		return nullptr;
 		Dictionary<String^, String^>^ dict = gcnew Dictionary<String^, String^>();
 
 		AVDictionaryEntry* tag = nullptr;
 		while ((tag = av_dict_get(wrapper.formatContext->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
-			dict->Add(gcnew String(tag->key), gcnew String(tag->value));
+			dict->Add(Utils::utf8toString(tag->key), Utils::utf8toString(tag->value));
 
 		return dict;
 	}
@@ -41,7 +41,6 @@ namespace FFmpeg
 	{
 		wrapper.openRead();
 
-
 		int streamIndex = av_find_best_stream(wrapper.formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
 		if (streamIndex == AVERROR_STREAM_NOT_FOUND) return nullptr;
 		AVStream* stream = wrapper.formatContext->streams[streamIndex];
@@ -50,13 +49,12 @@ namespace FFmpeg
 
 		AVCodecID codecId = stream->codecpar->codec_id;
 		String^ extension = codecId == AV_CODEC_ID_PNG
-			? ".jpg"
+			? "jpg"
 			: codecId == AV_CODEC_ID_BMP
-				? ".bmp"
-				: ".jpeg";
+				? "bmp"
+				: "jpeg";
 
 		array<unsigned char>^ buffer = gcnew array<unsigned char>(stream->attached_pic.size);
-		return nullptr;
 		pin_ptr<unsigned char> pinned = &buffer[0];
 
 		memcpy_s(
@@ -66,7 +64,7 @@ namespace FFmpeg
 			stream->attached_pic.size
 		);
 
-		return Tuple::Create<String^, array<unsigned char>^>(extension, buffer);
+		return gcnew Tuple<String^, array<unsigned char>^>(extension, buffer);
 	}
 #pragma endregion Thumbnail
 }
