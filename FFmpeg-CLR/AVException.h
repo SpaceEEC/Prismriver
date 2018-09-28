@@ -11,7 +11,7 @@ using namespace System;
 
 namespace FFmpeg
 {
-	public ref class AVException : Exception
+	public ref class AVException : public Exception
 	{
 	public:
 		AVException(String^ message) : Exception(message, nullptr) {}
