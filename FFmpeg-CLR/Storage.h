@@ -14,12 +14,6 @@ namespace FFmpeg
 	public:
 		~Storage();
 
-		AVCodecContext* decoderContext = nullptr;
-		AVCodecContext* encoderContext = nullptr;
-
-		AVCodec* decoder = nullptr;
-		AVCodec* encoder = nullptr;
-
 		AVFilterContext* bufferSinkContext;
 		AVFilterContext* bufferSourceContext;
 		AVFilterGraph* filterGraph;

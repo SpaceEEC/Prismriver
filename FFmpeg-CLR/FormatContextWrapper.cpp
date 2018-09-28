@@ -32,8 +32,9 @@ namespace FFmpeg
 			this->ioContextWrapper_ = nullptr;
 		}
 
-		if (this->format_ != nullptr)
-			Marshal::FreeHGlobal(static_cast<IntPtr>(const_cast<char*>(this->format_)));
+		// TODO: heap corruption?
+		//if (this->format_ != nullptr)
+		//	Marshal::FreeHGlobal(static_cast<IntPtr>(const_cast<char*>(this->format_)));
 
 	}
 

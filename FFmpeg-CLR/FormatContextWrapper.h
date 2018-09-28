@@ -14,7 +14,7 @@ namespace FFmpeg
 {
 	private class FormatContextWrapper
 	{
-	private:
+	protected:
 		// No default or copy constructor or assign operator
 		FormatContextWrapper() = delete;
 		FormatContextWrapper(const FormatContextWrapper& other) = delete;
@@ -56,7 +56,7 @@ namespace FFmpeg
 		 */
 		FormatContextWrapper(String^ file) : file_(static_cast<const char*>(Marshal::StringToHGlobalAnsi(file).ToPointer())) {}
 
-		~FormatContextWrapper();
+		virtual ~FormatContextWrapper();
 
 		/**
 		 * The AVFormatContext of this FormatContextWrapper
@@ -73,12 +73,12 @@ namespace FFmpeg
 		 * Opens this FormatContextWrapper in reading mode.
 		 * Throws on failure.
 		 */
-		void openRead();
+		virtual void openRead();
 		/**
 		 * Opens this FormatContextWrapper in writing mode.
 		 * Throws on failure.
 		 */
-		void openWrite();
+		virtual void openWrite();
 	};
 }
 

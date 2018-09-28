@@ -134,18 +134,23 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="AVException.h" />
+    <ClInclude Include="AVHandle.h" />
+    <ClInclude Include="CodecContextWrapper.h" />
     <ClInclude Include="FormatContextWrapper.h" />
     <ClInclude Include="Transcoder.h" />
     <ClInclude Include="IO.h" />
     <ClInclude Include="MetaData.h" />
     <ClInclude Include="Storage.h" />
     <ClInclude Include="IOContextWrapper.h" />
+    <ClInclude Include="Utils.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
+    <ClCompile Include="CodecContextWrapper.cpp" />
     <ClCompile Include="FormatContextWrapper.cpp" />
     <ClCompile Include="IO.cpp" />
     <ClCompile Include="IOContextWrapper.cpp" />
+    <ClCompile Include="ITrack.h" />
     <ClCompile Include="Transcoder.cpp" />
     <ClCompile Include="MetaData.cpp" />
     <ClCompile Include="Storage.cpp" />

@@ -1,7 +1,9 @@
 #pragma once
 
+#include "ITrack.h"
+
 #include "Storage.h"
-#include "FormatContextWrapper.h"
+#include "CodecContextWrapper.h"
 
 extern "C"
 {
@@ -20,45 +22,21 @@ namespace FFmpeg
 	{
 	public:
 		/**
-		 * Instantiates a new Transcoder.
+		 * Instantiates a new Transcoder using a stream.
 		 */
-		Transcoder();
+		Transcoder(Stream^ stream, array<ITrack^>^ tracks);
+		/**
+		 * Instantiates a new Transcoder using a file.
+		 */
+		Transcoder(String^ file, array<ITrack^>^ tracks);
 
-		/**
-		 * Sets the input for this FFmpeg to a stream.
-		 */
-		Transcoder^ SetIn(Stream^ stream);
-		/**
-		 * Sets the input for this FFmpeg to a file.
-		 */
-		Transcoder^ SetIn(String^ file);
-
-		/**
-		 * Sets the output for this FFmpeg to a stream.
-		 * Note that setting an output format with FFmpeg#SetOutFormat is required.
-		 */
-		Transcoder^ SetOut(Stream^ file);
-		/**
-		 * Sets the output for this FFmpge to a file.
-		 * Note that the output format will be inferred from the provided file if not overriden with FFmpeg#SetOutFormat.
-		 */
-		Transcoder^ SetOut(String^ file);
-
-		/**
-		 * Sets or overrides the output format for this FFmpeg.
-		 */
-		Transcoder^ SetOutFormat(String^ format);
-
-		void DoStuff();
+		void Run();
 
 	private:
 		~Transcoder();
 		!Transcoder();
 
-		/**
-		 * Temporary holder for a set output format.
-		 */
-		String^ format_;
+		array<ITrack^>^ tracks;
 
 		/**
 		 * Hack to not have interior_ptr<T> but native pointers.
@@ -68,11 +46,7 @@ namespace FFmpeg
 		/**
 		 * Holds the relevant AV* classes for the input.
 		 */
-		FormatContextWrapper* dataIn;
-		/**
-		 * Holds the relevant AV* classes for the output.
-		 */
-		FormatContextWrapper* dataOut;
+		CodecContextWrapper* dataIn;
 
 		/**
 		 * The index to the audio stream being read from.
@@ -80,31 +54,23 @@ namespace FFmpeg
 		int streamIndex;
 
 		/**
-		 * Initializes the input.
-		 */
-		inline void InitInput_();
-		/**
-		 * Initializes the output.
-		 */
-		inline void InitOutput_();
-		/**
 		 * Initializes the filter. (buffersink / buffersource)
 		 */
-		inline void InitFilter_();
+		inline void InitFilter_(CodecContextWrapper& out);
 
-		inline void DoStuff_();
+		inline void Run_(CodecContextWrapper& out, ITrack^ track);
 
 		/**
 		 * Decodes a frame, this will call Transcoder#FilterFrame_ while doing so.
 		 */
-		inline void DecodePacket_(AVPacket* pPacket, AVFrame* pFrame, AVFrame* pFilterFrame);
+		inline void DecodePacket_(CodecContextWrapper& out, AVPacket* pPacket, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
 		/**
 		 * Filters a frame, this will call Transcoder#EncodeWriteFrame_ while doing so.
 		 */
-		inline void FilterFrame_(AVFrame* pFrame, AVFrame* pFilterFrame);
+		inline void FilterFrame_(CodecContextWrapper& out, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
 		/**
 		 * Encodes and write a frame.
 		 */
-		inline void EncodeWriteFrame_(AVFrame* pFilterFrame);
+		inline void EncodeWriteFrame_(CodecContextWrapper& out, AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
 	};
 }
