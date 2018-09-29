@@ -2,6 +2,15 @@
 
 namespace FFmpeg
 {
+	CodecContextWrapper::~CodecContextWrapper()
+	{
+		FormatContextWrapper::~FormatContextWrapper();
+
+		this->streamIndex = AVERROR_STREAM_NOT_FOUND;
+		this->codec = nullptr;
+		avcodec_free_context(&this->codecContext);
+	}
+
 	void CodecContextWrapper::openRead()
 	{
 		FormatContextWrapper::openRead();

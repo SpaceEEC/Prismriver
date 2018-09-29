@@ -19,14 +19,7 @@ namespace FFmpeg
 		CodecContextWrapper(Stream^ stream) : FormatContextWrapper(stream) {}
 		CodecContextWrapper(String^ file) : FormatContextWrapper(file) {}
 
-		virtual ~CodecContextWrapper()
-		{
-			FormatContextWrapper::~FormatContextWrapper();
-
-			this->streamIndex = AVERROR_STREAM_NOT_FOUND;
-			this->codec = nullptr;
-			avcodec_free_context(&this->codecContext);
-		}
+		virtual ~CodecContextWrapper();
 		
 		/**
 		 * The index of the found stream.
