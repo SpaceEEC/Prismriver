@@ -21,7 +21,7 @@ namespace FFmpeg
 
 		AVDictionaryEntry* tag = nullptr;
 		while ((tag = av_dict_get(wrapper.formatContext->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
-			dict->Add(Utils::utf8toString(tag->key), Utils::utf8toString(tag->value));
+			dict->Add(Utils::Utf8BytesToString(tag->key), Utils::Utf8BytesToString(tag->value));
 
 		return dict;
 	}

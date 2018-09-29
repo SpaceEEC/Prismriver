@@ -53,30 +53,9 @@ namespace FFmpeg
 				HRESULT hr = av_dict_copy(&meta, dataIn->formatContext->metadata, AV_DICT_IGNORE_SUFFIX);
 				if (FAILED(hr)) throw gcnew AVException(hr);
 
-				if (track->Album != nullptr)
-					av_dict_set(
-						&meta,
-						"album",
-						Utils::stringtoUtf8(track->Album),
-						// TODO: those strings shouldn't be duplicated, but freeing those causes a heap corruption?
-						0 //AV_DICT_DONT_STRDUP_VAL
-					);
-
-				if (track->Author != nullptr)
-					av_dict_set(
-						&meta,
-						"artist",
-						Utils::stringtoUtf8(track->Author),
-						0 //AV_DICT_DONT_STRDUP_VAL
-					);
-
-				if (track->Title != nullptr)
-					av_dict_set(
-						&meta,
-						"title",
-						Utils::stringtoUtf8(track->Title),
-						0 //AV_DICT_DONT_STRDUP_VAL
-					);
+				if (track->Album != nullptr) Utils::AddStringToDict(&meta, "album", track->Album);
+				if (track->Author != nullptr) Utils::AddStringToDict(&meta, "artist", track->Author);
+				if (track->Title != nullptr) Utils::AddStringToDict(&meta, "title", track->Title);
 
 				out.formatContext->metadata = meta;
 				av_dict_copy(&out.formatContext->streams[0]->metadata, meta, AV_DICT_IGNORE_SUFFIX);
@@ -102,6 +81,21 @@ namespace FFmpeg
 			{
 				CodecContextWrapper out(file);
 				out.openWrite(this->dataIn);
+
+				AVDictionary* meta = out.formatContext->metadata;
+
+				HRESULT hr = av_dict_copy(&meta, dataIn->formatContext->metadata, AV_DICT_IGNORE_SUFFIX);
+				if (FAILED(hr)) throw gcnew AVException(hr);
+
+				if (track->Album != nullptr) Utils::AddStringToDict(&meta, "album", track->Album);
+				if (track->Author != nullptr) Utils::AddStringToDict(&meta, "artist", track->Author);
+				if (track->Title != nullptr) Utils::AddStringToDict(&meta, "title", track->Title);
+
+				out.formatContext->metadata = meta;
+				av_dict_copy(&out.formatContext->streams[0]->metadata, meta, AV_DICT_IGNORE_SUFFIX);
+
+				hr = avformat_write_header(out.formatContext, nullptr);
+				if (FAILED(hr)) throw gcnew AVException(hr);
 
 				this->InitFilter_(out);
 				this->Run_(out, track);

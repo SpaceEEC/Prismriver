@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "IOContextWrapper.h"
+#include "Utils.h"
 
 using namespace System;
 using namespace System::IO;
@@ -28,12 +29,12 @@ namespace FFmpeg
 		/**
 		 * The file path of the input file, or nullptr if none.
 		 */
-		const char* file_ = nullptr;
+		char* file_ = nullptr;
 
 		/**
 		 * Used to overwrite the output format
 		 */
-		const char* format_ = nullptr;
+		char* format_ = nullptr;
 
 		/**
 		 * Whether this FormatContextWrapper had already been opened.
@@ -54,7 +55,7 @@ namespace FFmpeg
 		/**
 		 * Instantiates a new FormatContextWrapper using a file path.
 		 */
-		FormatContextWrapper(String^ file) : file_(static_cast<const char*>(Marshal::StringToHGlobalAnsi(file).ToPointer())) {}
+		FormatContextWrapper(String^ file) : file_(Utils::StringToUtf8Bytes(file)) {}
 
 		virtual ~FormatContextWrapper();
 
@@ -67,7 +68,7 @@ namespace FFmpeg
 		/**
 		 * Overrides the output format
 		 */
-		void setOutFormat(String^ format) { if (this->format_ == nullptr) this->format_ = static_cast<const char*>(Marshal::StringToHGlobalAnsi(format).ToPointer()); }
+		void setOutFormat(String^ format);
 
 		/**
 		 * Opens this FormatContextWrapper in reading mode.

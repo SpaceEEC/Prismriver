@@ -21,10 +21,7 @@ namespace FFmpeg
 		}
 
 		if (this->file_ != nullptr)
-		{
-			Marshal::FreeHGlobal(static_cast<IntPtr>(const_cast<char*>(this->file_)));
-			this->file_ = nullptr;
-		}
+			av_freep(&this->file_);
 
 		if (this->ioContextWrapper_ != nullptr)
 		{
@@ -32,10 +29,14 @@ namespace FFmpeg
 			this->ioContextWrapper_ = nullptr;
 		}
 
-		// TODO: heap corruption?
-		//if (this->format_ != nullptr)
-		//	Marshal::FreeHGlobal(static_cast<IntPtr>(const_cast<char*>(this->format_)));
+		if (this->format_ != nullptr)
+			av_freep(&this->format_);
+	}
 
+	void FormatContextWrapper::setOutFormat(String ^ format)
+	{
+		if (this->format_ != nullptr) av_freep(&this->format_);
+		this->format_ = Utils::StringToUtf8Bytes(format);
 	}
 
 	void FormatContextWrapper::openRead()
@@ -67,7 +68,7 @@ namespace FFmpeg
 
 		AVOutputFormat* pOutputFormat = av_guess_format(this->format_, this->file_, nullptr);
 
-		if (pOutputFormat == nullptr) return throw gcnew Exception("Could not find a suitable output format from the file name or set output format.");
+		if (pOutputFormat == nullptr) return throw gcnew Exception("Could not find a suitable output format from the file name or output format.");
 
 		HRESULT hr = S_OK;
 	
