@@ -6,48 +6,51 @@ extern "C"
 #include <libavfilter/avfilter.h>
 }
 
-// https://stackoverflow.com/a/16253197
-template<typename T, typename D>
-private class AVHandle
+namespace FFmpeg
 {
-private:
-	AVHandle() = delete;
-	AVHandle(const AVHandle&) = delete;
-	AVHandle& operator=(const AVHandle&) = delete;
-
-	T *val;
-	D* deleter;
-
-public:
-	AVHandle(T *in, D* del) : val(in), deleter(del) {}
-
-	operator T *()
+	// https://stackoverflow.com/a/16253197
+	template<typename T, typename D>
+	private class AVHandle
 	{
-		return val;
-	}
+	private:
+		AVHandle() = delete;
+		AVHandle(const AVHandle&) = delete;
+		AVHandle& operator=(const AVHandle&) = delete;
 
-	T* operator->()
-	{
-		return val;
-	}
-	
-	T** operator&()
-	{
-		return &val;
-	}
+		T *val;
+		D* deleter;
 
-	bool isValid()
-	{
-		return val != nullptr;
-	}
+	public:
+		AVHandle(T *in, D* del) : val(in), deleter(del) {}
 
-	~AVHandle()
-	{
-		deleter(&val);
-	}
-};
+		operator T *()
+		{
+			return val;
+		}
 
-typedef AVHandle<AVFrame, void(AVFrame**)> FrameHandle;
-typedef AVHandle<AVPacket, void(AVPacket**)> PacketHandle;
-typedef AVHandle<AVFilterInOut, void(AVFilterInOut**)> InOutHandle;
-typedef AVHandle<AVFilterGraph, void(AVFilterGraph**)> FilterGraphHandle;
+		T* operator->()
+		{
+			return val;
+		}
+
+		T** operator&()
+		{
+			return &val;
+		}
+
+		bool isValid()
+		{
+			return val != nullptr;
+		}
+
+		~AVHandle()
+		{
+			deleter(&val);
+		}
+	};
+
+	typedef AVHandle<AVFrame, void(AVFrame**)> FrameHandle;
+	typedef AVHandle<AVPacket, void(AVPacket**)> PacketHandle;
+	typedef AVHandle<AVFilterInOut, void(AVFilterInOut**)> InOutHandle;
+	typedef AVHandle<AVFilterGraph, void(AVFilterGraph**)> FilterGraphHandle;
+}
