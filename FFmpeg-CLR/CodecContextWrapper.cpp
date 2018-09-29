@@ -34,7 +34,7 @@ namespace FFmpeg
 		if (FAILED(hr)) throw gcnew AVException(hr);
 	}
 
-	void CodecContextWrapper::openWrite(CodecContextWrapper * dataIn)
+	void CodecContextWrapper::openWrite(CodecContextWrapper* dataIn)
 	{
 		FormatContextWrapper::openWrite();
 
