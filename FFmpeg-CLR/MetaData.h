@@ -1,6 +1,7 @@
 #pragma once
 
 #include "FormatContextWrapper.h"
+#include "ImageFormat.h"
 
 using namespace System;
 using namespace System::IO;
@@ -24,14 +25,14 @@ namespace FFmpeg
 		 * Gets the thumbnail from a stream.
 		 * Returns null if none was found.
 		 */
-		static Tuple<String^, array<unsigned char>^>^ GetThumbnail(Stream^ stream);
+		static Tuple<ImageFormat, array<unsigned char>^>^ GetThumbnail(Stream^ stream);
 		/**
 		 * Gets the thumbnail from a file.
 		 * Returns null if none was found.
 		 */
-		static Tuple<String^, array<unsigned char>^>^ GetThumbnail(String^ file);
+		static Tuple<ImageFormat, array<unsigned char>^>^ GetThumbnail(String^ file);
 	private:
 		static Dictionary<String^, String^>^ Get_(FormatContextWrapper& context);
-		static Tuple<String^, array<unsigned char>^>^ GetThumbnail_(FormatContextWrapper& context);
+		static Tuple<ImageFormat, array<unsigned char>^>^ GetThumbnail_(FormatContextWrapper& context);
 	};
 }

@@ -28,16 +28,16 @@ namespace FFmpeg
 #pragma endregion MetaData
 
 #pragma region Thumbnail
-	Tuple<String^, array<unsigned char>^>^ MetaData::GetThumbnail(String^ file)
+	Tuple<ImageFormat, array<unsigned char>^>^ MetaData::GetThumbnail(String^ file)
 	{
 		return MetaData::GetThumbnail_(FormatContextWrapper(file));
 	}
-	Tuple<String^, array<unsigned char>^>^ MetaData::GetThumbnail(Stream^ stream)
+	Tuple<ImageFormat, array<unsigned char>^>^ MetaData::GetThumbnail(Stream^ stream)
 	{
 		return MetaData::GetThumbnail_(FormatContextWrapper(stream));
 	}
 
-	Tuple<String^, array<unsigned char>^>^ MetaData::GetThumbnail_(FormatContextWrapper& wrapper)
+	Tuple<ImageFormat, array<unsigned char>^>^ MetaData::GetThumbnail_(FormatContextWrapper& wrapper)
 	{
 		wrapper.openRead();
 
@@ -47,12 +47,18 @@ namespace FFmpeg
 
 		if (stream->disposition != AV_DISPOSITION_ATTACHED_PIC) return nullptr;
 
-		AVCodecID codecId = stream->codecpar->codec_id;
-		String^ extension = codecId == AV_CODEC_ID_PNG
-			? "jpg"
-			: codecId == AV_CODEC_ID_BMP
-				? "bmp"
-				: "jpeg";
+		ImageFormat format;
+		switch (stream->codecpar->codec_id)
+		{
+		case AV_CODEC_ID_BMP:
+			format = ImageFormat::BMP;
+		case AV_CODEC_ID_PNG:
+			format = ImageFormat::PNG;
+		case AV_CODEC_ID_MJPEG:
+		default:
+			format = ImageFormat::JPEG;
+		}
+
 
 		array<unsigned char>^ buffer = gcnew array<unsigned char>(stream->attached_pic.size);
 		pin_ptr<unsigned char> pinned = &buffer[0];
@@ -64,7 +70,7 @@ namespace FFmpeg
 			stream->attached_pic.size
 		);
 
-		return gcnew Tuple<String^, array<unsigned char>^>(extension, buffer);
+		return gcnew Tuple<ImageFormat, array<unsigned char>^>(format, buffer);
 	}
 #pragma endregion Thumbnail
 }
