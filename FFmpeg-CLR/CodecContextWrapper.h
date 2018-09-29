@@ -13,7 +13,7 @@ namespace FFmpeg
 		// No default or copy constructor or assign operator
 		CodecContextWrapper() = delete;
 		CodecContextWrapper(const CodecContextWrapper& other) = delete;
-		CodecContextWrapper& operator=(const CodecContextWrapper% other) = delete;
+		CodecContextWrapper& operator=(const CodecContextWrapper& other) = delete;
 
 	public:
 		CodecContextWrapper(Stream^ stream) : FormatContextWrapper(stream) {}
