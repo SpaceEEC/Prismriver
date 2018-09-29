@@ -33,12 +33,6 @@ namespace FFmpeg
 			av_freep(&this->format_);
 	}
 
-	void FormatContextWrapper::setOutFormat(String ^ format)
-	{
-		if (this->format_ != nullptr) av_freep(&this->format_);
-		this->format_ = Utils::StringToUtf8Bytes(format);
-	}
-
 	void FormatContextWrapper::openRead()
 	{
 		if (this->opened_) throw gcnew InvalidOperationException("This FormatContextWrapper had already been opened.");

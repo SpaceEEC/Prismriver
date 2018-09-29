@@ -1,6 +1,7 @@
 ﻿#pragma once
 
 #include "IOContextWrapper.h"
+#include "TrackTarget.h"
 #include "Utils.h"
 
 using namespace System;
@@ -49,6 +50,14 @@ namespace FFmpeg
 	public:
 
 		/**
+		 * Instantiates a new FormatContextWrapper wrapping a TrackTarget.
+		 */
+		FormatContextWrapper(TrackTarget^ target) :
+			file_(target->File == nullptr ? nullptr : Utils::StringToUtf8Bytes(target->File)),
+			ioContextWrapper_(target->Stream == nullptr ? nullptr : new IOContextWrapper(target->Stream)),
+			format_(target->Format == nullptr ? nullptr : Utils::StringToUtf8Bytes(target->Format)) {}
+
+		/**
 		 * Instantiates a new FormatContextWrapper wrapping a Stream.
 		 */
 		FormatContextWrapper(Stream^ stream) : ioContextWrapper_(new IOContextWrapper(stream)) {}
@@ -64,11 +73,6 @@ namespace FFmpeg
 		 * Will be nullptr if not opened via openRead or openWrite.
 		 */
 		AVFormatContext* formatContext = nullptr;
-
-		/**
-		 * Overrides the output format
-		 */
-		void setOutFormat(String^ format);
 
 		/**
 		 * Opens this FormatContextWrapper in reading mode.

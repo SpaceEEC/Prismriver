@@ -137,6 +137,9 @@
     <ClInclude Include="AVHandle.h" />
     <ClInclude Include="CodecContextWrapper.h" />
     <ClInclude Include="FormatContextWrapper.h" />
+    <ClInclude Include="ImageFormat.h" />
+    <ClInclude Include="TrackCoverImage.h" />
+    <ClInclude Include="TrackTarget.h" />
     <ClInclude Include="Transcoder.h" />
     <ClInclude Include="IO.h" />
     <ClInclude Include="MetaData.h" />

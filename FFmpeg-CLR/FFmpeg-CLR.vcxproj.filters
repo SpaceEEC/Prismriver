@@ -9,11 +9,11 @@
       <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
       <Extensions>h;hh;hpp;hxx;hm;inl;inc;ipp;xsd</Extensions>
     </Filter>
-    <Filter Include="Interfaces">
-      <UniqueIdentifier>{82111d4b-a382-4d93-b530-5a910a875907}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Wrappers">
+    <Filter Include="Wrapper Files">
       <UniqueIdentifier>{ea15f63e-471f-4cfe-9415-047a71debc2d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="User Relevant Files">
+      <UniqueIdentifier>{82111d4b-a382-4d93-b530-5a910a875907}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -36,16 +36,25 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FormatContextWrapper.h">
-      <Filter>Wrappers</Filter>
+      <Filter>Wrapper Files</Filter>
     </ClInclude>
     <ClInclude Include="IOContextWrapper.h">
-      <Filter>Wrappers</Filter>
+      <Filter>Wrapper Files</Filter>
     </ClInclude>
     <ClInclude Include="CodecContextWrapper.h">
-      <Filter>Wrappers</Filter>
+      <Filter>Wrapper Files</Filter>
     </ClInclude>
     <ClInclude Include="Utils.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TrackTarget.h">
+      <Filter>User Relevant Files</Filter>
+    </ClInclude>
+    <ClInclude Include="TrackCoverImage.h">
+      <Filter>User Relevant Files</Filter>
+    </ClInclude>
+    <ClInclude Include="ImageFormat.h">
+      <Filter>User Relevant Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -65,16 +74,16 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="ITrack.h">
-      <Filter>Interfaces</Filter>
+      <Filter>User Relevant Files</Filter>
     </ClCompile>
     <ClCompile Include="IOContextWrapper.cpp">
-      <Filter>Wrappers</Filter>
+      <Filter>Wrapper Files</Filter>
     </ClCompile>
     <ClCompile Include="FormatContextWrapper.cpp">
-      <Filter>Wrappers</Filter>
+      <Filter>Wrapper Files</Filter>
     </ClCompile>
     <ClCompile Include="CodecContextWrapper.cpp">
-      <Filter>Wrappers</Filter>
+      <Filter>Wrapper Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

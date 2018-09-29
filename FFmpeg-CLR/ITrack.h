@@ -1,5 +1,8 @@
 #pragma once
 
+#include "TrackCoverImage.h"
+#include "TrackTarget.h"
+
 using namespace System;
 
 namespace FFmpeg
@@ -9,13 +12,13 @@ namespace FFmpeg
 		/**
 		 * Image of this ITrack, null if none.
 		 */
-		property array<unsigned char>^ CoverImage
+		property TrackCoverImage^ CoverImage
 		{
-			array<unsigned char>^ get();
+			TrackCoverImage^ get();
 		}
 
 		/**
-		 * Where this ITrack starts, null if at the start.
+		 * Where this ITrack starts, null if directly after the preceding track or at the start.
 		 */
 		property Nullable<TimeSpan> Start
 		{
@@ -56,15 +59,10 @@ namespace FFmpeg
 
 		/**
 		 * Where to output this ITrack.
-		 * This either has to be a string, will be interpreted as the filepath then.
-		 * Or a System.IO.Stream, which will be written to then.
-		 * Should be seekable as headers sometimes needs to be rewritten.
-		 *
-		 * May _not_ be null.
 		 */
-		property Object^ Target
+		property TrackTarget^ Target
 		{
-			Object^ get();
+			TrackTarget^ get();
 		}
 	};
 }
