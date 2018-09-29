@@ -56,21 +56,21 @@ namespace FFmpeg
 		/**
 		 * Initializes the filter. (buffersink / buffersource)
 		 */
-		inline void InitFilter_(CodecContextWrapper& out);
+		inline void InitFilter_(CodecContextWrapper* out);
 
-		inline void Run_(CodecContextWrapper& out, ITrack^ track);
+		inline void Run_(CodecContextWrapper* out, ITrack^ track);
 
 		/**
 		 * Decodes a frame, this will call Transcoder#FilterFrame_ while doing so.
 		 */
-		inline void DecodePacket_(CodecContextWrapper& out, AVPacket* pPacket, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
+		inline void DecodePacket_(CodecContextWrapper* out, AVPacket* pPacket, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
 		/**
 		 * Filters a frame, this will call Transcoder#EncodeWriteFrame_ while doing so.
 		 */
-		inline void FilterFrame_(CodecContextWrapper& out, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
+		inline void FilterFrame_(CodecContextWrapper* out, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
 		/**
 		 * Encodes and write a frame.
 		 */
-		inline void EncodeWriteFrame_(CodecContextWrapper& out, AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
+		inline void EncodeWriteFrame_(CodecContextWrapper* out, AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
 	};
 }

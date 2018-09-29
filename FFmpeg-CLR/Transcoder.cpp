@@ -12,10 +12,10 @@ extern "C"
 #include <libavfilter/buffersrc.h>
 }
 
-#define logging(fmt, ...) av_log(nullptr, AV_LOG_INFO, fmt, __VA_ARGS__)
-
 namespace FFmpeg
 {
+#define logging(fmt, ...) av_log(nullptr, AV_LOG_INFO, fmt, __VA_ARGS__)
+
 	Transcoder::Transcoder(Stream^ stream, array<ITrack^>^ tracks)
 		: dataIn(new CodecContextWrapper(stream)),
 		tracks(tracks) {}
@@ -39,75 +39,45 @@ namespace FFmpeg
 
 		for each(ITrack^ track in this->tracks)
 		{
-			// TODO: Dedup this
-			Stream^ stream = dynamic_cast<Stream^>(track->Target);
-			if (stream != nullptr)
+			CodecContextWrapper* out = track->Target->Stream != nullptr
+				? new CodecContextWrapper(track->Target->Stream)
+				: new CodecContextWrapper(track->Target->File);
+
+			out->openWrite(this->dataIn);
+
+			AVDictionary* meta = out->formatContext->metadata;
+
+			HRESULT hr = av_dict_copy(&meta, dataIn->formatContext->metadata, AV_DICT_IGNORE_SUFFIX);
+			if (FAILED(hr))
 			{
-				CodecContextWrapper out(stream);
-				// TODO: sane api for this
-				out.setOutFormat("flac");
-				out.openWrite(this->dataIn);
+				delete out;
 
-				AVDictionary* meta = out.formatContext->metadata;
-
-				HRESULT hr = av_dict_copy(&meta, dataIn->formatContext->metadata, AV_DICT_IGNORE_SUFFIX);
-				if (FAILED(hr)) throw gcnew AVException(hr);
-
-				if (track->Album != nullptr) Utils::AddStringToDict(&meta, "album", track->Album);
-				if (track->Author != nullptr) Utils::AddStringToDict(&meta, "artist", track->Author);
-				if (track->Title != nullptr) Utils::AddStringToDict(&meta, "title", track->Title);
-
-				out.formatContext->metadata = meta;
-				av_dict_copy(&out.formatContext->streams[0]->metadata, meta, AV_DICT_IGNORE_SUFFIX);
-
-				hr = avformat_write_header(out.formatContext, nullptr);
-				if (FAILED(hr)) throw gcnew AVException(hr);
-
-				AVDictionaryEntry* tag = nullptr;
-				while ((tag = av_dict_get(out.formatContext->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
-					logging("key %s -> value %s\n", tag->key, tag->value);
-
-				while ((tag = av_dict_get(out.formatContext->streams[0]->metadata, "", tag, AV_DICT_IGNORE_SUFFIX)))
-					logging("key %s -> value %s\n", tag->key, tag->value);
-
-				this->InitFilter_(out);
-				this->Run_(out, track);
-
-				continue;
+				throw gcnew AVException(hr);
 			}
 
-			String^ file = dynamic_cast<String^>(track->Target);
-			if (file != nullptr)
+			if (track->Album != nullptr) Utils::AddStringToDict(&meta, "album", track->Album);
+			if (track->Author != nullptr) Utils::AddStringToDict(&meta, "artist", track->Author);
+			if (track->Title != nullptr) Utils::AddStringToDict(&meta, "title", track->Title);
+
+			out->formatContext->metadata = meta;
+			av_dict_copy(&out->formatContext->streams[0]->metadata, meta, AV_DICT_IGNORE_SUFFIX);
+
+			hr = avformat_write_header(out->formatContext, nullptr);
+			if (FAILED(hr))
 			{
-				CodecContextWrapper out(file);
-				out.openWrite(this->dataIn);
+				delete out;
 
-				AVDictionary* meta = out.formatContext->metadata;
-
-				HRESULT hr = av_dict_copy(&meta, dataIn->formatContext->metadata, AV_DICT_IGNORE_SUFFIX);
-				if (FAILED(hr)) throw gcnew AVException(hr);
-
-				if (track->Album != nullptr) Utils::AddStringToDict(&meta, "album", track->Album);
-				if (track->Author != nullptr) Utils::AddStringToDict(&meta, "artist", track->Author);
-				if (track->Title != nullptr) Utils::AddStringToDict(&meta, "title", track->Title);
-
-				out.formatContext->metadata = meta;
-				av_dict_copy(&out.formatContext->streams[0]->metadata, meta, AV_DICT_IGNORE_SUFFIX);
-
-				hr = avformat_write_header(out.formatContext, nullptr);
-				if (FAILED(hr)) throw gcnew AVException(hr);
-
-				this->InitFilter_(out);
-				this->Run_(out, track);
-
-				continue;
+				throw gcnew AVException(hr);
 			}
 
-			throw gcnew Exception();
+			this->InitFilter_(out);
+			this->Run_(out, track);
+			
+			delete out;
 		}
 	}
 
-	inline void Transcoder::InitFilter_(CodecContextWrapper& out)
+	inline void Transcoder::InitFilter_(CodecContextWrapper* out)
 	{
 		const AVFilter* pBufferSource = nullptr;
 		const AVFilter* pBufferSink = nullptr;
@@ -157,8 +127,8 @@ namespace FFmpeg
 		hr = av_opt_set_bin(
 			pBufferSinkContext,
 			"sample_fmts",
-			reinterpret_cast<unsigned char*>(&out.codecContext->sample_fmt),
-			sizeof(out.codecContext->sample_fmt),
+			reinterpret_cast<unsigned char*>(&out->codecContext->sample_fmt),
+			sizeof(out->codecContext->sample_fmt),
 			AV_OPT_SEARCH_CHILDREN
 		);
 		if (FAILED(hr)) throw gcnew AVException(hr);
@@ -166,8 +136,8 @@ namespace FFmpeg
 		hr = av_opt_set_bin(
 			pBufferSinkContext,
 			"channel_layouts",
-			reinterpret_cast<unsigned char*>(&out.codecContext->channel_layout),
-			sizeof(out.codecContext->channel_layout),
+			reinterpret_cast<unsigned char*>(&out->codecContext->channel_layout),
+			sizeof(out->codecContext->channel_layout),
 			AV_OPT_SEARCH_CHILDREN
 		);
 		if (FAILED(hr)) throw gcnew AVException(hr);
@@ -175,8 +145,8 @@ namespace FFmpeg
 		hr = av_opt_set_bin(
 			pBufferSinkContext,
 			"sample_rates",
-			reinterpret_cast<unsigned char*>(&out.codecContext->sample_rate),
-			sizeof(out.codecContext->sample_rate),
+			reinterpret_cast<unsigned char*>(&out->codecContext->sample_rate),
+			sizeof(out->codecContext->sample_rate),
 			AV_OPT_SEARCH_CHILDREN
 		);
 		if (FAILED(hr)) throw gcnew AVException(hr);
@@ -200,10 +170,10 @@ namespace FFmpeg
 		if (FAILED(hr = avfilter_graph_config(pFilterGraph, nullptr)))
 			throw gcnew AVException(hr);
 
-		av_buffersink_set_frame_size(pBufferSinkContext, out.codecContext->frame_size);
+		av_buffersink_set_frame_size(pBufferSinkContext, out->codecContext->frame_size);
 	}
 	
-	inline void Transcoder::Run_(CodecContextWrapper& out, ITrack^ track)
+	inline void Transcoder::Run_(CodecContextWrapper* out, ITrack^ track)
 	{
 		FrameHandle frame(av_frame_alloc(), av_frame_free);
 		if (!frame.isValid()) throw gcnew OutOfMemoryException();
@@ -248,11 +218,11 @@ namespace FFmpeg
 		this->EncodeWriteFrame_(out, nullptr, encodedPacket);
 
 		HRESULT hr = S_OK;
-		if (FAILED(hr = av_write_trailer(out.formatContext)))
+		if (FAILED(hr = av_write_trailer(out->formatContext)))
 			throw gcnew AVException(hr);
 	}
 
-	inline void Transcoder::DecodePacket_(CodecContextWrapper& out, AVPacket* pPacket, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket)
+	inline void Transcoder::DecodePacket_(CodecContextWrapper* out, AVPacket* pPacket, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket)
 	{
 
 		av_packet_rescale_ts(
@@ -280,7 +250,7 @@ namespace FFmpeg
 			logging("DecodePacket_: Error: %s\n", AVException::GetStringFromAVerror(hr));
 	}
 
-	inline void Transcoder::FilterFrame_(CodecContextWrapper& out, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket)
+	inline void Transcoder::FilterFrame_(CodecContextWrapper* out, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket)
 	{
 		av_buffersrc_add_frame_flags(this->storage->bufferSourceContext, pFrame, 0);
 
@@ -301,19 +271,19 @@ namespace FFmpeg
 			logging("FilterFrame_: Error: %s\n", AVException::GetStringFromAVerror(hr));
 	}
 
-	inline void Transcoder::EncodeWriteFrame_(CodecContextWrapper& out, AVFrame* pFilterFrame, AVPacket* pEncodedPacket)
+	inline void Transcoder::EncodeWriteFrame_(CodecContextWrapper* out, AVFrame* pFilterFrame, AVPacket* pEncodedPacket)
 	{
-		avcodec_send_frame(out.codecContext, pFilterFrame);
+		avcodec_send_frame(out->codecContext, pFilterFrame);
 
 		HRESULT hr = S_OK;
 		do
 		{
-			if (FAILED(hr = avcodec_receive_packet(out.codecContext, pEncodedPacket)))
+			if (FAILED(hr = avcodec_receive_packet(out->codecContext, pEncodedPacket)))
 				break;
 
-			av_packet_rescale_ts(pEncodedPacket, out.codecContext->time_base, this->dataIn->codecContext->time_base);
+			av_packet_rescale_ts(pEncodedPacket, out->codecContext->time_base, this->dataIn->codecContext->time_base);
 
-			if (FAILED(hr = av_interleaved_write_frame(out.formatContext, pEncodedPacket)))
+			if (FAILED(hr = av_interleaved_write_frame(out->formatContext, pEncodedPacket)))
 				break;
 
 			av_packet_unref(pEncodedPacket);
