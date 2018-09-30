@@ -18,11 +18,11 @@ namespace FFmpeg
 
 	Transcoder::Transcoder(Stream^ stream, array<ITrack^>^ tracks)
 		: dataIn(new CodecContextWrapper(stream)),
-		tracks(tracks) {}
+		Tracks(tracks) {}
 
 	Transcoder::Transcoder(String^ file, array<ITrack^>^ tracks)
 		: dataIn(new CodecContextWrapper(file)),
-		tracks(tracks) {}
+		Tracks(tracks) {}
 
 	Transcoder::~Transcoder() { this->!Transcoder(); }
 	Transcoder::!Transcoder()
@@ -32,58 +32,64 @@ namespace FFmpeg
 		delete this->dataIn;
 	}
 
+	Transcoder^ Transcoder::SetProgress(IProgress<Tuple<int, double>^>^ progress)
+	{
+		this->progress_ = progress;
+
+		return this;
+	}
+
 	void Transcoder::Run()
 	{
+		this->trackIndex_ = -1;
 		this->dataIn->openRead();
 		this->storage = new Storage();
 
-		ITrack^ prev = nullptr;
-		for each(ITrack^ track in this->tracks)
+		try
 		{
-			if (prev != nullptr && !track->Start.HasValue)
-				track->Start = prev->Stop;
-			prev = track;
-
-			// TODO: make this a "handle"
-			CodecContextWrapper* out = track->Target->Stream != nullptr
-				? new CodecContextWrapper(track->Target->Stream)
-				: new CodecContextWrapper(track->Target->File);
-
-			out->openWrite(this->dataIn);
-
-			AVDictionary* meta = out->formatContext->metadata;
-
-			HRESULT hr = av_dict_copy(&meta, dataIn->formatContext->metadata, AV_DICT_IGNORE_SUFFIX);
-			if (FAILED(hr))
+			ITrack^ prev = nullptr;
+			for each(ITrack^ track in this->Tracks)
 			{
-				delete out;
+				++this->trackIndex_;
+				if (prev != nullptr && !track->Start.HasValue)
+					track->Start = prev->Stop;
+				prev = track;
 
-				throw gcnew AVException(hr);
+				if (this->dataOut_ != nullptr) delete this->dataOut_;
+				this->dataOut_ = track->Target->Stream != nullptr
+					? new CodecContextWrapper(track->Target->Stream)
+					: new CodecContextWrapper(track->Target->File);
+
+				this->dataOut_->openWrite(this->dataIn);
+
+				AVDictionary* meta = this->dataOut_->formatContext->metadata;
+
+				HRESULT hr = av_dict_copy(&meta, dataIn->formatContext->metadata, AV_DICT_IGNORE_SUFFIX);
+				if (FAILED(hr))
+					throw gcnew AVException(hr);
+
+				if (track->Album != nullptr) Utils::AddStringToDict(&meta, "album", track->Album);
+				if (track->Author != nullptr) Utils::AddStringToDict(&meta, "artist", track->Author);
+				if (track->Title != nullptr) Utils::AddStringToDict(&meta, "title", track->Title);
+
+				this->dataOut_->formatContext->metadata = meta;
+				av_dict_copy(&this->dataOut_->formatContext->streams[0]->metadata, meta, AV_DICT_IGNORE_SUFFIX);
+
+				hr = avformat_write_header(this->dataOut_->formatContext, nullptr);
+				if (FAILED(hr))
+					throw gcnew AVException(hr);
+
+				this->InitFilter_();
+				this->Run_();
 			}
-
-			if (track->Album != nullptr) Utils::AddStringToDict(&meta, "album", track->Album);
-			if (track->Author != nullptr) Utils::AddStringToDict(&meta, "artist", track->Author);
-			if (track->Title != nullptr) Utils::AddStringToDict(&meta, "title", track->Title);
-
-			out->formatContext->metadata = meta;
-			av_dict_copy(&out->formatContext->streams[0]->metadata, meta, AV_DICT_IGNORE_SUFFIX);
-
-			hr = avformat_write_header(out->formatContext, nullptr);
-			if (FAILED(hr))
-			{
-				delete out;
-
-				throw gcnew AVException(hr);
-			}
-
-			this->InitFilter_(out);
-			this->Run_(out, track);
-			
-			delete out;
+		}
+		finally
+		{
+			if (this->dataOut_ != nullptr) delete this->dataOut_;
 		}
 	}
 
-	inline void Transcoder::InitFilter_(CodecContextWrapper* out)
+	inline void Transcoder::InitFilter_()
 	{
 		const AVFilter* pBufferSource = nullptr;
 		const AVFilter* pBufferSink = nullptr;
@@ -129,12 +135,13 @@ namespace FFmpeg
 			throw gcnew AVException(hr);
 
 		AVFilterContext* pBufferSinkContext = this->storage->bufferSinkContext;
+		AVCodecContext* pEncCtx = this->dataOut_->codecContext;
 
 		hr = av_opt_set_bin(
 			pBufferSinkContext,
 			"sample_fmts",
-			reinterpret_cast<unsigned char*>(&out->codecContext->sample_fmt),
-			sizeof(out->codecContext->sample_fmt),
+			reinterpret_cast<unsigned char*>(&pEncCtx->sample_fmt),
+			sizeof(pEncCtx->sample_fmt),
 			AV_OPT_SEARCH_CHILDREN
 		);
 		if (FAILED(hr)) throw gcnew AVException(hr);
@@ -142,8 +149,8 @@ namespace FFmpeg
 		hr = av_opt_set_bin(
 			pBufferSinkContext,
 			"channel_layouts",
-			reinterpret_cast<unsigned char*>(&out->codecContext->channel_layout),
-			sizeof(out->codecContext->channel_layout),
+			reinterpret_cast<unsigned char*>(&pEncCtx->channel_layout),
+			sizeof(pEncCtx->channel_layout),
 			AV_OPT_SEARCH_CHILDREN
 		);
 		if (FAILED(hr)) throw gcnew AVException(hr);
@@ -151,8 +158,8 @@ namespace FFmpeg
 		hr = av_opt_set_bin(
 			pBufferSinkContext,
 			"sample_rates",
-			reinterpret_cast<unsigned char*>(&out->codecContext->sample_rate),
-			sizeof(out->codecContext->sample_rate),
+			reinterpret_cast<unsigned char*>(&pEncCtx->sample_rate),
+			sizeof(pEncCtx->sample_rate),
 			AV_OPT_SEARCH_CHILDREN
 		);
 		if (FAILED(hr)) throw gcnew AVException(hr);
@@ -176,10 +183,10 @@ namespace FFmpeg
 		if (FAILED(hr = avfilter_graph_config(pFilterGraph, nullptr)))
 			throw gcnew AVException(hr);
 
-		av_buffersink_set_frame_size(pBufferSinkContext, out->codecContext->frame_size);
+		av_buffersink_set_frame_size(pBufferSinkContext, pEncCtx->frame_size);
 	}
-	
-	inline void Transcoder::Run_(CodecContextWrapper* out, ITrack^ track)
+
+	inline void Transcoder::Run_()
 	{
 		FrameHandle frame(av_frame_alloc(), av_frame_free);
 		if (!frame.isValid()) throw gcnew OutOfMemoryException();
@@ -193,6 +200,7 @@ namespace FFmpeg
 		PacketHandle encodedPacket(av_packet_alloc(), av_packet_free);
 		if (!encodedPacket.isValid()) throw gcnew OutOfMemoryException();
 
+		ITrack^ track = this->Tracks[this->trackIndex_];
 		int start = track->Start.HasValue ? static_cast<int>(track->Start.Value.TotalSeconds) : 0;
 		bool hasStop = track->Stop.HasValue;
 		int stop = track->Stop.HasValue ? static_cast<int>(track->Stop.Value.TotalSeconds) : 0;
@@ -205,9 +213,11 @@ namespace FFmpeg
 			if (packet->stream_index == this->dataIn->streamIndex)
 			{
 				// rational of the current position in the stream in seconds
-				AVRational ts = av_mul_q(this->dataIn->getStream()->time_base, { (int)packet->pts, 1 });
+				AVRational ts = av_mul_q(this->dataIn->getStream()->time_base, { static_cast<int>(packet->pts), 1 });
 				// doulbe of ^
 				double dts = av_q2d(ts);
+				// Report back
+				this->ReportProgress_(dts);
 				if ((dts >= start) && (!hasStop || dts <= stop))
 				{
 					// subtract the start of the current track
@@ -216,7 +226,7 @@ namespace FFmpeg
 					ts = av_div_q(ts, this->dataIn->getStream()->time_base);
 					// to double and trucante
 					packet->pts = static_cast<long long>(av_q2d(ts));
-					this->DecodePacket_(out, packet, frame, filterFrame, encodedPacket);
+					this->DecodePacket_(packet, frame, filterFrame, encodedPacket);
 				}
 
 				if (hasStop && dts > stop)
@@ -230,17 +240,16 @@ namespace FFmpeg
 		if (FAILED(tmp))
 			logging("Run_: Error: %s\n", AVException::GetStringFromAVerror(tmp));
 
-		this->FilterFrame_(out, nullptr, filterFrame, encodedPacket);
-		this->EncodeWriteFrame_(out, nullptr, encodedPacket);
+		this->FilterFrame_(nullptr, filterFrame, encodedPacket);
+		this->EncodeWriteFrame_(nullptr, encodedPacket);
 
 		HRESULT hr = S_OK;
-		if (FAILED(hr = av_write_trailer(out->formatContext)))
+		if (FAILED(hr = av_write_trailer(this->dataOut_->formatContext)))
 			throw gcnew AVException(hr);
 	}
 
-	inline void Transcoder::DecodePacket_(CodecContextWrapper* out, AVPacket* pPacket, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket)
+	inline void Transcoder::DecodePacket_(AVPacket* pPacket, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket)
 	{
-
 		av_packet_rescale_ts(
 			pPacket,
 			this->dataIn->getStream()->time_base,
@@ -255,7 +264,7 @@ namespace FFmpeg
 			if (FAILED(hr = avcodec_receive_frame(this->dataIn->codecContext, pFrame)))
 				break;
 
-			this->FilterFrame_(out, pFrame, pFilterFrame, pEncodedPacket);
+			this->FilterFrame_(pFrame, pFilterFrame, pEncodedPacket);
 
 			av_frame_unref(pFrame);
 		} while (true);
@@ -264,7 +273,7 @@ namespace FFmpeg
 			logging("DecodePacket_: Error: %s\n", AVException::GetStringFromAVerror(hr));
 	}
 
-	inline void Transcoder::FilterFrame_(CodecContextWrapper* out, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket)
+	inline void Transcoder::FilterFrame_(AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket)
 	{
 		av_buffersrc_add_frame_flags(this->storage->bufferSourceContext, pFrame, 0);
 
@@ -276,7 +285,7 @@ namespace FFmpeg
 
 			pFilterFrame->pict_type = AV_PICTURE_TYPE_NONE;
 
-			this->EncodeWriteFrame_(out, pFilterFrame, pEncodedPacket);
+			this->EncodeWriteFrame_(pFilterFrame, pEncodedPacket);
 
 			av_frame_unref(pFilterFrame);
 		} while (true);
@@ -285,19 +294,19 @@ namespace FFmpeg
 			logging("FilterFrame_: Error: %s\n", AVException::GetStringFromAVerror(hr));
 	}
 
-	inline void Transcoder::EncodeWriteFrame_(CodecContextWrapper* out, AVFrame* pFilterFrame, AVPacket* pEncodedPacket)
+	inline void Transcoder::EncodeWriteFrame_(AVFrame* pFilterFrame, AVPacket* pEncodedPacket)
 	{
-		avcodec_send_frame(out->codecContext, pFilterFrame);
+		avcodec_send_frame(this->dataOut_->codecContext, pFilterFrame);
 
 		HRESULT hr = S_OK;
 		do
 		{
-			if (FAILED(hr = avcodec_receive_packet(out->codecContext, pEncodedPacket)))
+			if (FAILED(hr = avcodec_receive_packet(this->dataOut_->codecContext, pEncodedPacket)))
 				break;
 
-			av_packet_rescale_ts(pEncodedPacket, out->codecContext->time_base, this->dataIn->codecContext->time_base);
+			av_packet_rescale_ts(pEncodedPacket, this->dataOut_->codecContext->time_base, this->dataIn->codecContext->time_base);
 
-			if (FAILED(hr = av_interleaved_write_frame(out->formatContext, pEncodedPacket)))
+			if (FAILED(hr = av_interleaved_write_frame(this->dataOut_->formatContext, pEncodedPacket)))
 				break;
 
 			av_packet_unref(pEncodedPacket);
@@ -307,5 +316,45 @@ namespace FFmpeg
 			logging("EncodeWriteFrame_: Error: %s\n", AVException::GetStringFromAVerror(hr));
 
 		av_packet_unref(pEncodedPacket);
+	}
+
+	void Transcoder::ReportProgress_(double current)
+	{
+		if (this->progress_ == nullptr) return;
+		ITrack^ track = this->Tracks[this->trackIndex_];
+
+		double stop;
+		// The track provides a stop value, blindly trust it
+		if (track->Stop.HasValue)
+			stop = track->Stop.Value.TotalSeconds;
+		// Can't get a duration, report NaN
+		else if (this->dataIn->getStream()->duration < 0)
+			stop = NAN;
+		// End of stream
+		else
+		{
+			// get seconds in AVRational
+			AVRational rat = av_mul_q({ static_cast<int>(this->dataIn->getStream()->duration), 1 }, this->dataIn->getStream()->time_base);
+			// convert to double
+			stop = av_q2d(rat);
+		}
+
+		// If we are not at the start, subtract the offset
+		if (track->Start.HasValue)
+		{
+			current -= track->Start.Value.TotalSeconds;
+			stop -= track->Start.Value.TotalSeconds;
+		}
+
+		double progress = current / stop;
+		// never report more than 1
+		if (progress > 1) progress = 1;
+
+		this->progress_->Report(
+			gcnew Tuple<int, double>(
+				this->trackIndex_,
+				progress
+				)
+		);
 	}
 }

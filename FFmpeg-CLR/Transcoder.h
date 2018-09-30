@@ -30,13 +30,35 @@ namespace FFmpeg
 		 */
 		Transcoder(String^ file, array<ITrack^>^ tracks);
 
+		/**
+		 * The tracks to split the input.
+		 */
+		initonly array<ITrack^>^ Tracks;
+
+		/**
+		 * Starts transcoding.
+		 */
 		void Run();
+		/**
+		 * Registers an IProgress to report progress to.
+		 * First item of the tuple will be the index of the currently being transcoded track.
+		 * Second item of the tuple will be the percent [0,1].
+		 */
+		Transcoder^ SetProgress(IProgress<Tuple<int, double>^>^ progress);
 
 	private:
 		~Transcoder();
 		!Transcoder();
 
-		array<ITrack^>^ tracks;
+		/**
+		 * IProgress to report progress to.
+		 */
+		IProgress<Tuple<int, double>^>^ progress_;
+
+		/**
+		 * The index of the current track.
+		 */
+		int trackIndex_;
 
 		/**
 		 * Hack to not have interior_ptr<T> but native pointers.
@@ -49,23 +71,35 @@ namespace FFmpeg
 		CodecContextWrapper* dataIn;
 
 		/**
+		 * Holds the relevant AV* classes for the current output.
+		 */
+		CodecContextWrapper* dataOut_;
+
+		/**
+		 * Actually does the transcoding.
+		 */
+		inline void Run_();
+		/**
 		 * Initializes the filter. (buffersink / buffersource)
 		 */
-		inline void InitFilter_(CodecContextWrapper* out);
-
-		inline void Run_(CodecContextWrapper* out, ITrack^ track);
+		inline void InitFilter_();
 
 		/**
 		 * Decodes a frame, this will call Transcoder#FilterFrame_ while doing so.
 		 */
-		inline void DecodePacket_(CodecContextWrapper* out, AVPacket* pPacket, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
+		inline void DecodePacket_(AVPacket* pPacket, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
 		/**
 		 * Filters a frame, this will call Transcoder#EncodeWriteFrame_ while doing so.
 		 */
-		inline void FilterFrame_(CodecContextWrapper* out, AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
+		inline void FilterFrame_(AVFrame* pFrame, AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
 		/**
 		 * Encodes and write a frame.
 		 */
-		inline void EncodeWriteFrame_(CodecContextWrapper* out, AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
+		inline void EncodeWriteFrame_(AVFrame* pFilterFrame, AVPacket* pEncodedPacket);
+
+		/**
+		 * Reports progress of the current timestamp, if set.
+		 */
+		void ReportProgress_(double current);
 	};
 }
