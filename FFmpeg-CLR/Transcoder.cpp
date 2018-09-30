@@ -62,23 +62,7 @@ namespace FFmpeg
 
 				this->dataOut_->openWrite(this->dataIn);
 
-				AVDictionary* meta = this->dataOut_->formatContext->metadata;
-
-				HRESULT hr = av_dict_copy(&meta, dataIn->formatContext->metadata, AV_DICT_IGNORE_SUFFIX);
-				if (FAILED(hr))
-					throw gcnew AVException(hr);
-
-				if (track->Album != nullptr) Utils::AddStringToDict(&meta, "album", track->Album);
-				if (track->Author != nullptr) Utils::AddStringToDict(&meta, "artist", track->Author);
-				if (track->Title != nullptr) Utils::AddStringToDict(&meta, "title", track->Title);
-
-				this->dataOut_->formatContext->metadata = meta;
-				av_dict_copy(&this->dataOut_->formatContext->streams[0]->metadata, meta, AV_DICT_IGNORE_SUFFIX);
-
-				hr = avformat_write_header(this->dataOut_->formatContext, nullptr);
-				if (FAILED(hr))
-					throw gcnew AVException(hr);
-
+				this->InitMetaData_();
 				this->InitFilter_();
 				this->Run_();
 			}
@@ -87,6 +71,26 @@ namespace FFmpeg
 		{
 			if (this->dataOut_ != nullptr) delete this->dataOut_;
 		}
+	}
+
+	inline void Transcoder::InitMetaData_()
+	{
+		ITrack^ track = this->Tracks[this->trackIndex_];
+		AVDictionary* meta = this->dataOut_->formatContext->metadata;
+
+		HRESULT hr = av_dict_copy(&meta, dataIn->formatContext->metadata, AV_DICT_IGNORE_SUFFIX);
+		if (FAILED(hr)) throw gcnew AVException(hr);
+
+		if (track->Album != nullptr) Utils::AddStringToDict(&meta, "album", track->Album);
+		if (track->Author != nullptr) Utils::AddStringToDict(&meta, "artist", track->Author);
+		if (track->Title != nullptr) Utils::AddStringToDict(&meta, "title", track->Title);
+
+		this->dataOut_->formatContext->metadata = meta;
+		hr = av_dict_copy(&this->dataOut_->formatContext->streams[0]->metadata, meta, AV_DICT_IGNORE_SUFFIX);
+		if (FAILED(hr)) throw gcnew AVException(hr);
+
+		hr = avformat_write_header(this->dataOut_->formatContext, nullptr);
+		if (FAILED(hr)) throw gcnew AVException(hr);
 	}
 
 	inline void Transcoder::InitFilter_()

@@ -83,6 +83,10 @@ namespace FFmpeg
 		 * Initializes the filter. (buffersink / buffersource)
 		 */
 		inline void InitFilter_();
+		/**
+		 * Initializes the metadata of the output format and streams.
+		 */
+		inline void InitMetaData_();
 
 		/**
 		 * Decodes a frame, this will call Transcoder#FilterFrame_ while doing so.
