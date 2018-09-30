@@ -19,10 +19,12 @@ namespace FFmpeg
 
 		/**
 		 * Where this ITrack starts, null if directly after the preceding track or at the start.
+		 * In case of null this field will be automatically filled with the stop of the preceeding track.
 		 */
 		property Nullable<TimeSpan> Start
 		{
 			Nullable<TimeSpan> get();
+			void set(Nullable<TimeSpan> value);
 		}
 
 		/**

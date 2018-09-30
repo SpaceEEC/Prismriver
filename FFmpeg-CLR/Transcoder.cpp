@@ -37,8 +37,14 @@ namespace FFmpeg
 		this->dataIn->openRead();
 		this->storage = new Storage();
 
+		ITrack^ prev = nullptr;
 		for each(ITrack^ track in this->tracks)
 		{
+			if (prev != nullptr && !track->Start.HasValue)
+				track->Start = prev->Stop;
+			prev = track;
+
+			// TODO: make this a "handle"
 			CodecContextWrapper* out = track->Target->Stream != nullptr
 				? new CodecContextWrapper(track->Target->Stream)
 				: new CodecContextWrapper(track->Target->File);
@@ -198,15 +204,26 @@ namespace FFmpeg
 		{
 			if (packet->stream_index == this->streamIndex)
 			{
-				double ts = packet->pts * av_q2d(this->dataIn->formatContext->streams[this->streamIndex]->time_base);
-				if ((start == 0 || ts >= start) && (!hasStop || ts <= stop))
+				// rational of the current position in the stream in seconds
+				AVRational ts = av_mul_q(this->dataIn->formatContext->streams[this->streamIndex]->time_base, { (int)packet->pts, 1 });
+				// doulbe of ^
+				double dts = av_q2d(ts);
+				if ((dts >= start) && (!hasStop || dts <= stop))
 				{
-					//logging("TS %f\n", ts);
+					// subtract the start of the current track
+					ts = av_sub_q(ts, { start, 1 });
+					// convert back to to time_base of the input stream
+					ts = av_div_q(ts, this->dataIn->formatContext->streams[this->streamIndex]->time_base);
+					// to double and trucante
+					packet->pts = static_cast<long long>(av_q2d(ts));
 					this->DecodePacket_(out, packet, frame, filterFrame, encodedPacket);
 				}
 
-				if (hasStop && ts > stop)
+				if (hasStop && dts > stop)
+				{
+					av_packet_unref(packet);
 					break;
+				}
 			}
 			av_packet_unref(packet);
 		}
@@ -214,7 +231,6 @@ namespace FFmpeg
 			logging("Run_: Error: %s\n", AVException::GetStringFromAVerror(tmp));
 
 		this->FilterFrame_(out, nullptr, filterFrame, encodedPacket);
-
 		this->EncodeWriteFrame_(out, nullptr, encodedPacket);
 
 		HRESULT hr = S_OK;
@@ -238,8 +254,6 @@ namespace FFmpeg
 		{
 			if (FAILED(hr = avcodec_receive_frame(this->dataIn->codecContext, pFrame)))
 				break;
-
-			pFrame->pts = pFrame->best_effort_timestamp;
 
 			this->FilterFrame_(out, pFrame, pFilterFrame, pEncodedPacket);
 
