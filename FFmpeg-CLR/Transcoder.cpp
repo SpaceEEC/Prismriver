@@ -28,7 +28,6 @@ namespace FFmpeg
 	Transcoder::!Transcoder()
 	{
 		GC::SuppressFinalize(this);
-		delete this->storage;
 		delete this->dataIn;
 	}
 
@@ -43,33 +42,28 @@ namespace FFmpeg
 	{
 		this->trackIndex_ = -1;
 		this->dataIn->openRead();
-		this->storage = new Storage();
 
-		try
+		ITrack^ prev = nullptr;
+		for each(ITrack^ track in this->Tracks)
 		{
-			ITrack^ prev = nullptr;
-			for each(ITrack^ track in this->Tracks)
-			{
-				++this->trackIndex_;
-				if (prev != nullptr && !track->Start.HasValue)
-					track->Start = prev->Stop;
-				prev = track;
+			Handle<Storage> storageHandle(this->storage = new Storage());
 
-				if (this->dataOut_ != nullptr) delete this->dataOut_;
+			++this->trackIndex_;
+			if (prev != nullptr && !track->Start.HasValue)
+				track->Start = prev->Stop;
+			prev = track;
+
+			Handle<CodecContextWrapper> dataOutHandle(
 				this->dataOut_ = track->Target->Stream != nullptr
 					? new CodecContextWrapper(track->Target->Stream)
-					: new CodecContextWrapper(track->Target->File);
+					: new CodecContextWrapper(track->Target->File)
+			);
 
-				this->dataOut_->openWrite(this->dataIn);
+			dataOutHandle->openWrite(this->dataIn);
 
-				this->InitMetaData_();
-				this->InitFilter_();
-				this->Run_();
-			}
-		}
-		finally
-		{
-			if (this->dataOut_ != nullptr) delete this->dataOut_;
+			this->InitMetaData_();
+			this->InitFilter_();
+			this->Run_();
 		}
 	}
 

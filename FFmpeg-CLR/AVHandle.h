@@ -10,18 +10,19 @@ namespace FFmpeg
 {
 	// https://stackoverflow.com/a/16253197
 	template<typename T, typename D>
-	private class AVHandle
+	private class BaseHandle
 	{
 	private:
-		AVHandle() = delete;
-		AVHandle(const AVHandle&) = delete;
-		AVHandle& operator=(const AVHandle&) = delete;
+		BaseHandle() = delete;
+		BaseHandle(const BaseHandle&) = delete;
+		BaseHandle& operator=(const BaseHandle&) = delete;
 
+	protected:
 		T *val;
 		D* deleter;
 
 	public:
-		AVHandle(T *in, D* del) : val(in), deleter(del) {}
+		BaseHandle(T *in, D* del) : val(in), deleter(del) {}
 
 		operator T *()
 		{
@@ -42,6 +43,13 @@ namespace FFmpeg
 		{
 			return val != nullptr;
 		}
+	};
+
+	template<typename T, typename D>
+	private class AVHandle : public BaseHandle<T, D>
+	{
+	public:
+		AVHandle(T* in, D* del) : BaseHandle(in, del) {}
 
 		~AVHandle()
 		{
@@ -49,8 +57,19 @@ namespace FFmpeg
 		}
 	};
 
+	template<typename T>
+	private class Handle : public BaseHandle<T, void(void*)>
+	{
+	public:
+		Handle(T* in) : BaseHandle(in, nullptr) {}
+
+		~Handle()
+		{
+			delete val;
+		}
+	};
+
 	typedef AVHandle<AVFrame, void(AVFrame**)> FrameHandle;
 	typedef AVHandle<AVPacket, void(AVPacket**)> PacketHandle;
 	typedef AVHandle<AVFilterInOut, void(AVFilterInOut**)> InOutHandle;
-	typedef AVHandle<AVFilterGraph, void(AVFilterGraph**)> FilterGraphHandle;
-}
+	typedef AVHandle<AVFilterGraph, void(AVFilterGraph**)> FilterGraphHandle;}
