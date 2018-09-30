@@ -11,6 +11,13 @@ namespace FFmpeg
 		avcodec_free_context(&this->codecContext);
 	}
 
+	AVStream* CodecContextWrapper::getStream()
+	{
+		if (this->streamIndex == AVERROR_STREAM_NOT_FOUND) return nullptr;
+		if (this->formatContext == nullptr) return nullptr;
+		return this->formatContext->streams[this->streamIndex];
+	}
+
 	void CodecContextWrapper::openRead()
 	{
 		FormatContextWrapper::openRead();

@@ -49,11 +49,6 @@ namespace FFmpeg
 		CodecContextWrapper* dataIn;
 
 		/**
-		 * The index to the audio stream being read from.
-		 */
-		int streamIndex;
-
-		/**
 		 * Initializes the filter. (buffersink / buffersource)
 		 */
 		inline void InitFilter_(CodecContextWrapper* out);

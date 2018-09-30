@@ -40,6 +40,12 @@ namespace FFmpeg
 		AVCodecContext* codecContext = nullptr;
 
 		/**
+		 * Returns the stream which is being read from.
+		 * Will return nullptr if the CodecContextWrapper was opened via openRead or no stream was found.
+		 */
+		AVStream* getStream();
+
+		/**
 		 * Opens this CodecContextWrapper in reading mode.
 		 * Throw on failure.
 		 */

@@ -202,10 +202,10 @@ namespace FFmpeg
 		HRESULT tmp;
 		while (SUCCEEDED(tmp = av_read_frame(this->dataIn->formatContext, packet)))
 		{
-			if (packet->stream_index == this->streamIndex)
+			if (packet->stream_index == this->dataIn->streamIndex)
 			{
 				// rational of the current position in the stream in seconds
-				AVRational ts = av_mul_q(this->dataIn->formatContext->streams[this->streamIndex]->time_base, { (int)packet->pts, 1 });
+				AVRational ts = av_mul_q(this->dataIn->getStream()->time_base, { (int)packet->pts, 1 });
 				// doulbe of ^
 				double dts = av_q2d(ts);
 				if ((dts >= start) && (!hasStop || dts <= stop))
@@ -213,7 +213,7 @@ namespace FFmpeg
 					// subtract the start of the current track
 					ts = av_sub_q(ts, { start, 1 });
 					// convert back to to time_base of the input stream
-					ts = av_div_q(ts, this->dataIn->formatContext->streams[this->streamIndex]->time_base);
+					ts = av_div_q(ts, this->dataIn->getStream()->time_base);
 					// to double and trucante
 					packet->pts = static_cast<long long>(av_q2d(ts));
 					this->DecodePacket_(out, packet, frame, filterFrame, encodedPacket);
@@ -243,7 +243,7 @@ namespace FFmpeg
 
 		av_packet_rescale_ts(
 			pPacket,
-			this->dataIn->formatContext->streams[this->streamIndex]->time_base,
+			this->dataIn->getStream()->time_base,
 			this->dataIn->codecContext->time_base
 		);
 
