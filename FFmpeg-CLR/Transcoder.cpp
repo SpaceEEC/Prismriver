@@ -129,14 +129,11 @@ namespace FFmpeg
 			pDecoderContext->channel_layout
 		);
 
+		HRESULT hr = avfilter_graph_create_filter(&this->storage->bufferSourceContext, pBufferSource, "in", args, nullptr, pFilterGraph);
+		if (FAILED(hr)) throw gcnew AVException(hr);
 
-		HRESULT hr = S_OK;
-		if (FAILED(hr = avfilter_graph_create_filter(&this->storage->bufferSourceContext, pBufferSource, "in", args, nullptr, pFilterGraph)))
-			throw gcnew AVException(hr);
-
-
-		if (FAILED(hr = avfilter_graph_create_filter(&this->storage->bufferSinkContext, pBufferSink, "out", nullptr, nullptr, pFilterGraph)))
-			throw gcnew AVException(hr);
+		hr = avfilter_graph_create_filter(&this->storage->bufferSinkContext, pBufferSink, "out", nullptr, nullptr, pFilterGraph);
+		if (FAILED(hr)) throw gcnew AVException(hr);
 
 		AVFilterContext* pBufferSinkContext = this->storage->bufferSinkContext;
 		AVCodecContext* pEncCtx = this->dataOut_->codecContext;
@@ -181,11 +178,11 @@ namespace FFmpeg
 		if (outputs->name == nullptr || inputs->name == nullptr)
 			throw gcnew OutOfMemoryException();
 
-		if (FAILED(hr = avfilter_graph_parse_ptr(pFilterGraph, "anull", &inputs, &outputs, nullptr)))
-			throw gcnew AVException(hr);
+		hr = avfilter_graph_parse_ptr(pFilterGraph, "anull", &inputs, &outputs, nullptr);
+		if (FAILED(hr)) throw gcnew AVException(hr);
 
-		if (FAILED(hr = avfilter_graph_config(pFilterGraph, nullptr)))
-			throw gcnew AVException(hr);
+		hr = avfilter_graph_config(pFilterGraph, nullptr);
+		if (FAILED(hr)) throw gcnew AVException(hr);
 
 		av_buffersink_set_frame_size(pBufferSinkContext, pEncCtx->frame_size);
 	}

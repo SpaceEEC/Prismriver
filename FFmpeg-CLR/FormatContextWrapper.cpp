@@ -39,16 +39,16 @@ namespace FFmpeg
 		this->opened_ = true;
 		this->input_ = true;
 
-		AVFormatContext* pFormatContext = this->formatContext = avformat_alloc_context();
+		this->formatContext = avformat_alloc_context();
 		if (this->formatContext == nullptr) throw gcnew OutOfMemoryException();
 
 		if (this->ioContextWrapper_ != nullptr)
 		{
 			this->ioContextWrapper_->openRead(); // Throws on failure
-			formatContext->pb = this->ioContextWrapper_->ioContext;
+			this->formatContext->pb = this->ioContextWrapper_->ioContext;
 		}
 
-		HRESULT hr = avformat_open_input(&pFormatContext, this->file_, nullptr, nullptr);
+		HRESULT hr = avformat_open_input(&this->formatContext, this->file_, nullptr, nullptr);
 		if (FAILED(hr)) throw gcnew AVException(hr);
 	}
 
@@ -64,38 +64,18 @@ namespace FFmpeg
 
 		if (pOutputFormat == nullptr) return throw gcnew Exception("Could not find a suitable output format from the file name or output format.");
 
-		HRESULT hr = S_OK;
-	
-		AVFormatContext* pFormatContext = nullptr;
-		if (FAILED(hr = avformat_alloc_output_context2(&pFormatContext, pOutputFormat, nullptr, this->file_)))
-			throw gcnew AVException(hr);
+		HRESULT hr = avformat_alloc_output_context2(&this->formatContext, pOutputFormat, nullptr, this->file_);
+		if (FAILED(hr)) throw gcnew AVException(hr);
 
 		if (this->ioContextWrapper_ != nullptr)
 		{
-			try
-			{
-				this->ioContextWrapper_->openWrite();
-			}
-			catch (Exception^ e)
-			{
-				avformat_free_context(pFormatContext);
-
-				// Wrap in another exception to keep the stacktrace.
-				throw gcnew Exception("Opening the output IOContextWrapper failed.", e);
-			}
-
-			pFormatContext->pb = this->ioContextWrapper_->ioContext;
+			this->ioContextWrapper_->openWrite();
+			this->formatContext->pb = this->ioContextWrapper_->ioContext;
 		}
 		else if ((pOutputFormat->flags & AVFMT_NOFILE) == 0)
 		{
-			if (FAILED(hr = avio_open(&pFormatContext->pb, this->file_, AVIO_FLAG_WRITE)))
-			{
-				avformat_free_context(pFormatContext);
-
-				throw gcnew AVException(hr);
-			}
+			hr = avio_open(&this->formatContext->pb, this->file_, AVIO_FLAG_WRITE);
+			if (FAILED(hr)) throw gcnew AVException(hr);
 		}
-
-		this->formatContext = pFormatContext;
 	}
 }
