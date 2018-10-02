@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 #include "IOContextWrapper.h"
 #include "TrackTarget.h"
@@ -12,7 +12,7 @@ extern "C"
 #include <libavformat/avformat.h>
 }
 
-namespace FFmpeg
+namespace Prismriver
 {
 	private class FormatContextWrapper
 	{

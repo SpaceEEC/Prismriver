@@ -1,7 +1,7 @@
 #include "FormatContextWrapper.h"
 #include "AVException.h"
 
-namespace FFmpeg
+namespace Prismriver
 {
 	FormatContextWrapper::~FormatContextWrapper()
 	{

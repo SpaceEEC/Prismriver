@@ -6,7 +6,7 @@ extern "C"
 #include <libavfilter/avfilter.h>
 }
 
-namespace FFmpeg
+namespace Prismriver
 {
 	// https://stackoverflow.com/a/16253197
 	template<typename T, typename D>
@@ -72,4 +72,5 @@ namespace FFmpeg
 	typedef AVHandle<AVFrame, void(AVFrame**)> FrameHandle;
 	typedef AVHandle<AVPacket, void(AVPacket**)> PacketHandle;
 	typedef AVHandle<AVFilterInOut, void(AVFilterInOut**)> InOutHandle;
-	typedef AVHandle<AVFilterGraph, void(AVFilterGraph**)> FilterGraphHandle;}
+	typedef AVHandle<AVFilterGraph, void(AVFilterGraph**)> FilterGraphHandle;
+}

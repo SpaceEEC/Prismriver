@@ -7,7 +7,7 @@ using namespace System;
 using namespace System::IO;
 using namespace System::Collections::Generic;
 
-namespace FFmpeg
+namespace Prismriver
 {
 	public ref class MetaData abstract sealed
 	{

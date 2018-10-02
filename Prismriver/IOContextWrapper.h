@@ -8,9 +8,9 @@ extern "C"
 
 using namespace System;
 using namespace System::IO;
-using namespace System::Runtime::InteropServices; 
+using namespace System::Runtime::InteropServices;
 
-namespace FFmpeg
+namespace Prismriver
 {
 	static const int BUFFERSIZE = 16 * 1024;
 

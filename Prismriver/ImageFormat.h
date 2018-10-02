@@ -5,7 +5,7 @@ extern "C"
 #include <libavcodec/avcodec.h>
 }
 
-namespace FFmpeg
+namespace Prismriver
 {
 	public enum class ImageFormat : int
 	{

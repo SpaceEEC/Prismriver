@@ -4,14 +4,14 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{4177036D-7473-4966-A920-A39E647794FE}</ProjectGuid>
+    <ProjectGuid>{1205BAF2-B8F5-4DBF-BC0A-07F2CF90A53F}</ProjectGuid>
     <OutputType>Exe</OutputType>
     <RootNamespace>Sandbox</RootNamespace>
     <AssemblyName>Sandbox</AssemblyName>
-    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
-    <Deterministic>true</Deterministic>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <PlatformTarget>x64</PlatformTarget>
@@ -51,9 +51,9 @@
     <None Include="App.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\FFmpeg-CLR\FFmpeg-CLR.vcxproj">
-      <Project>{b03edf1a-c356-4045-b4c3-8b1bec8369be}</Project>
-      <Name>FFmpeg-CLR</Name>
+    <ProjectReference Include="..\Prismriver\Prismriver.vcxproj">
+      <Project>{ed0f61d9-2f6e-43ca-b8bc-5a5c4e7c0388}</Project>
+      <Name>Prismriver</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

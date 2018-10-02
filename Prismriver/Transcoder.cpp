@@ -12,7 +12,7 @@ extern "C"
 #include <libavfilter/buffersrc.h>
 }
 
-namespace FFmpeg
+namespace Prismriver
 {
 #define logging(fmt, ...) av_log(nullptr, AV_LOG_INFO, fmt, __VA_ARGS__)
 
@@ -55,8 +55,8 @@ namespace FFmpeg
 
 			Handle<CodecContextWrapper> dataOutHandle(
 				this->dataOut_ = track->Target->Stream != nullptr
-					? new CodecContextWrapper(track->Target->Stream)
-					: new CodecContextWrapper(track->Target->File)
+				? new CodecContextWrapper(track->Target->Stream)
+				: new CodecContextWrapper(track->Target->File)
 			);
 
 			dataOutHandle->openWrite(this->dataIn);

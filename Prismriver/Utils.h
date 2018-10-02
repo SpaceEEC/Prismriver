@@ -5,7 +5,7 @@
 using namespace System;
 using namespace System::Text;
 
-namespace FFmpeg
+namespace Prismriver
 {
 	private ref class Utils sealed abstract
 	{

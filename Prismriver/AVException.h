@@ -9,7 +9,7 @@ extern "C"
 
 using namespace System;
 
-namespace FFmpeg
+namespace Prismriver
 {
 	public ref class AVException sealed : public Exception
 	{

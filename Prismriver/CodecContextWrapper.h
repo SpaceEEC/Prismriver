@@ -5,7 +5,7 @@
 
 #include <winerror.h>
 
-namespace FFmpeg
+namespace Prismriver
 {
 	private class CodecContextWrapper : public FormatContextWrapper
 	{
@@ -20,7 +20,7 @@ namespace FFmpeg
 		CodecContextWrapper(String^ file) : FormatContextWrapper(file) {}
 
 		virtual ~CodecContextWrapper();
-		
+
 		/**
 		 * The index of the found stream.
 		 * Will only not be AVERROR_STREAM_NOT_FOUND if opened in read mode.

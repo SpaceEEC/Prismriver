@@ -1,6 +1,6 @@
 #include "CodecContextWrapper.h"
 
-namespace FFmpeg
+namespace Prismriver
 {
 	CodecContextWrapper::~CodecContextWrapper()
 	{

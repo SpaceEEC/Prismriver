@@ -7,7 +7,7 @@ extern "C"
 #include <libavfilter/buffersink.h>
 }
 
-namespace FFmpeg
+namespace Prismriver
 {
 	private struct Storage
 	{

@@ -1,6 +1,6 @@
 #pragma once
 
-namespace FFmpeg
+namespace Prismriver
 {
 	namespace IO
 	{

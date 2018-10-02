@@ -1,7 +1,7 @@
 #include "MetaData.h"
 #include "Utils.h"
 
-namespace FFmpeg
+namespace Prismriver
 {
 #pragma region MetaData
 	Dictionary<String^, String^>^ MetaData::Get(Stream^ stream)

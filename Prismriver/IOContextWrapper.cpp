@@ -2,7 +2,7 @@
 
 #include "IO.h"
 
-namespace FFmpeg
+namespace Prismriver
 {
 	IOContextWrapper::~IOContextWrapper()
 	{
@@ -10,7 +10,7 @@ namespace FFmpeg
 		av_freep(&this->ioContext->buffer);
 		av_freep(&this->ioContext);
 	}
-	
+
 	void IOContextWrapper::open(bool read)
 	{
 		if (this->opened_) throw gcnew InvalidOperationException("This IOContextWrapper had already been opened");

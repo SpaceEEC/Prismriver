@@ -1,6 +1,6 @@
 #include "Storage.h"
 
-namespace FFmpeg
+namespace Prismriver
 {
 	Storage::~Storage()
 	{

@@ -16,7 +16,7 @@ using namespace System::IO;
 using namespace System::Collections::Generic;
 using namespace System::Runtime::InteropServices;
 
-namespace FFmpeg
+namespace Prismriver
 {
 	public ref class Transcoder sealed
 	{
