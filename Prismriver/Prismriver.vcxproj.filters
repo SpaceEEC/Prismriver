@@ -73,13 +73,13 @@
     <ClInclude Include="IOContextWrapper.h">
       <Filter>Wrapper Files</Filter>
     </ClInclude>
-    <ClInclude Include="FormatContextWrapper.h">
-      <Filter>Wrapper Files</Filter>
-    </ClInclude>
     <ClInclude Include="Handle.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="FilterContextWrapper.h">
+      <Filter>Wrapper Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FormatContextWrapper.h">
       <Filter>Wrapper Files</Filter>
     </ClInclude>
   </ItemGroup>

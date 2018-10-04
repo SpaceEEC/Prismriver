@@ -28,11 +28,6 @@ namespace Prismriver
 		IOContextWrapper* ioContextWrapper_ = nullptr;
 
 		/**
-		 * The file path of the input file, or nullptr if none.
-		 */
-		char* file_ = nullptr;
-
-		/**
 		 * Used to overwrite the output format
 		 */
 		char* format_ = nullptr;
@@ -46,6 +41,13 @@ namespace Prismriver
 		 * Whether this FormatContextWrapper wraps an input context.
 		 */
 		bool input_ = false;
+
+	protected:
+		/**
+		 * The file path of the input file, or nullptr if none.
+		 */
+		char* file_ = nullptr;
+		// Used by CodecContextWrapper
 
 	public:
 
