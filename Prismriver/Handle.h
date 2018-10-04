@@ -49,7 +49,7 @@ namespace Prismriver
 	private class AVHandle : public BaseHandle<T, D>
 	{
 	public:
-		AVHandle(T* in, D* del) : BaseHandle(in, del) {}
+		using BaseHandle::BaseHandle;
 
 		~AVHandle()
 		{

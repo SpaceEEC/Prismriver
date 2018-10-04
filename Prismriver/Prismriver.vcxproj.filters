@@ -23,12 +23,6 @@
     <ClCompile Include="MetaData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Storage.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="Transcoder.cpp">
-      <Filter>Header Files</Filter>
-    </ClCompile>
     <ClCompile Include="CodecContextWrapper.cpp">
       <Filter>Wrapper Files</Filter>
     </ClCompile>
@@ -37,6 +31,12 @@
     </ClCompile>
     <ClCompile Include="IOContextWrapper.cpp">
       <Filter>Wrapper Files</Filter>
+    </ClCompile>
+    <ClCompile Include="FilterContextWrapper.cpp">
+      <Filter>Wrapper Files</Filter>
+    </ClCompile>
+    <ClCompile Include="Transcoder.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -47,9 +47,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="MetaData.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="Storage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Transcoder.h">
@@ -73,14 +70,17 @@
     <ClInclude Include="CodecContextWrapper.h">
       <Filter>Wrapper Files</Filter>
     </ClInclude>
-    <ClInclude Include="formatContextWrapper.h">
-      <Filter>Wrapper Files</Filter>
-    </ClInclude>
     <ClInclude Include="IOContextWrapper.h">
       <Filter>Wrapper Files</Filter>
     </ClInclude>
-    <ClInclude Include="AVHandle.h">
+    <ClInclude Include="FormatContextWrapper.h">
+      <Filter>Wrapper Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Handle.h">
       <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="FilterContextWrapper.h">
+      <Filter>Wrapper Files</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

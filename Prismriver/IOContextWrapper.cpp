@@ -11,7 +11,7 @@ namespace Prismriver
 		av_freep(&this->ioContext);
 	}
 
-	void IOContextWrapper::open(bool read)
+	void IOContextWrapper::open_(bool read)
 	{
 		if (this->opened_) throw gcnew InvalidOperationException("This IOContextWrapper had already been opened");
 		this->opened_ = true;

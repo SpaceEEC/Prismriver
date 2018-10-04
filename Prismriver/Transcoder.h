@@ -2,8 +2,7 @@
 
 #include "ITrack.h"
 
-#include "Storage.h"
-#include "CodecContextWrapper.h"
+#include "FilterContextWrapper.h"
 
 extern "C"
 {
@@ -31,9 +30,12 @@ namespace Prismriver
 		Transcoder(String^ file, array<ITrack^>^ tracks);
 
 		/**
-		 * The tracks to split the input.
+		 * The ITracks to split the input.
 		 */
-		initonly array<ITrack^>^ Tracks;
+		property array<ITrack^>^ Tracks
+		{
+			array<ITrack^>^ get() { return this->tracks_; }
+		}
 
 		/**
 		 * Starts transcoding.
@@ -56,33 +58,30 @@ namespace Prismriver
 		IProgress<Tuple<int, double>^>^ progress_;
 
 		/**
+		 * Actually holds the ITracks to split the intput.
+		 */
+		array<ITrack^>^ tracks_ = nullptr;
+
+		/**
 		 * The index of the current track.
 		 */
 		int trackIndex_;
 
 		/**
-		 * Hack to not have interior_ptr<T> but native pointers.
-		 */
-		Storage* storage;
-
-		/**
 		 * Holds the relevant AV* classes for the input.
 		 */
-		CodecContextWrapper* dataIn;
+		CodecContextWrapper* dataIn_;
 
 		/**
 		 * Holds the relevant AV* classes for the current output.
+		 * Only is valid while transcoding, will change for every track.
 		 */
-		CodecContextWrapper* dataOut_;
+		FilterContextWrapper* dataOut_;
 
 		/**
 		 * Actually does the transcoding.
 		 */
 		inline void Run_();
-		/**
-		 * Initializes the filter. (buffersink / buffersource)
-		 */
-		inline void InitFilter_();
 		/**
 		 * Initializes the metadata of the output format and streams.
 		 */

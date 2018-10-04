@@ -16,7 +16,7 @@ namespace Prismriver
 {
 	private class FormatContextWrapper
 	{
-	protected:
+	private:
 		// No default or copy constructor or assign operator
 		FormatContextWrapper() = delete;
 		FormatContextWrapper(const FormatContextWrapper& other) = delete;

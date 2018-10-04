@@ -35,7 +35,7 @@ namespace Prismriver
 		/**
 		 * Opens the AVIOContext in the passed mode.
 		 */
-		void open(bool write);
+		void open_(bool write);
 
 	public:
 		/**
@@ -54,12 +54,12 @@ namespace Prismriver
 		 * Opens this IOContextWrapper in read mode.
 		 * Throws on failure.
 		 */
-		void openRead() { this->open(true); }
+		void openRead() { this->open_(true); }
 
 		/**
 		 * Opens this IOContextWrapper in write mode.
 		 * Throws on failure.
 		 */
-		void openWrite() { this->open(false); }
+		void openWrite() { this->open_(false); }
 	};
 }
