@@ -15,7 +15,7 @@ namespace Prismriver
 
 	Dictionary<String^, String^>^ MetaData::Get_(FormatContextWrapper& wrapper)
 	{
-		wrapper.openRead();
+		wrapper.OpenRead();
 
 		Dictionary<String^, String^>^ dict = gcnew Dictionary<String^, String^>();
 
@@ -39,7 +39,7 @@ namespace Prismriver
 
 	Tuple<ImageFormat, array<unsigned char>^>^ MetaData::GetThumbnail_(FormatContextWrapper& wrapper)
 	{
-		wrapper.openRead();
+		wrapper.OpenRead();
 
 		int streamIndex = av_find_best_stream(wrapper.formatContext, AVMEDIA_TYPE_VIDEO, -1, -1, nullptr, 0);
 		if (streamIndex == AVERROR_STREAM_NOT_FOUND) return nullptr;

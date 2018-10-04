@@ -80,12 +80,12 @@ namespace Prismriver
 		 * Opens this FormatContextWrapper in reading mode.
 		 * Throws on failure.
 		 */
-		virtual void openRead();
+		virtual void OpenRead();
 		/**
 		 * Opens this FormatContextWrapper in writing mode.
 		 * Throws on failure.
 		 */
-		virtual void openWrite();
+		virtual void OpenWrite();
 	};
 }
 

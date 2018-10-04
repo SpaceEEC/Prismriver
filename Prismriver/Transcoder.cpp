@@ -43,7 +43,7 @@ namespace Prismriver
 	void Transcoder::Run()
 	{
 		this->trackIndex_ = -1;
-		this->dataIn_->openRead();
+		this->dataIn_->OpenRead();
 
 		ITrack^ prev = nullptr;
 		for each(ITrack^ track in this->tracks_)
@@ -59,13 +59,13 @@ namespace Prismriver
 				: new FilterContextWrapper(track->Target->File)
 			);
 
-			if (!dataOutHandle.isValid())
+			if (!dataOutHandle.IsValid())
 				throw gcnew OutOfMemoryException();
 
-			this->dataOut_->openWrite(this->dataIn_);
+			this->dataOut_->OpenWrite(this->dataIn_);
 
 			this->InitMetaData_();
-			this->dataOut_->initFilters(this->dataIn_);
+			this->dataOut_->InitFilters(this->dataIn_);
 			this->Run_();
 		}
 
@@ -95,16 +95,16 @@ namespace Prismriver
 	inline void Transcoder::Run_()
 	{
 		FrameHandle frame(av_frame_alloc(), av_frame_free);
-		if (!frame.isValid()) throw gcnew OutOfMemoryException();
+		if (!frame.IsValid()) throw gcnew OutOfMemoryException();
 
 		FrameHandle filterFrame(av_frame_alloc(), av_frame_free);
-		if (!filterFrame.isValid()) throw gcnew OutOfMemoryException();
+		if (!filterFrame.IsValid()) throw gcnew OutOfMemoryException();
 
 		PacketHandle packet(av_packet_alloc(), av_packet_free);
-		if (!packet.isValid()) throw gcnew OutOfMemoryException();
+		if (!packet.IsValid()) throw gcnew OutOfMemoryException();
 
 		PacketHandle encodedPacket(av_packet_alloc(), av_packet_free);
-		if (!encodedPacket.isValid()) throw gcnew OutOfMemoryException();
+		if (!encodedPacket.IsValid()) throw gcnew OutOfMemoryException();
 
 		ITrack^ track = this->tracks_[this->trackIndex_];
 		int start = track->Start.HasValue ? static_cast<int>(track->Start.Value.TotalSeconds) : 0;
@@ -119,7 +119,7 @@ namespace Prismriver
 			if (packet->stream_index == this->dataIn_->streamIndex)
 			{
 				// rational of the current position in the stream in seconds
-				AVRational ts = av_mul_q(this->dataIn_->getStream()->time_base, { static_cast<int>(packet->pts), 1 });
+				AVRational ts = av_mul_q(this->dataIn_->GetStream()->time_base, { static_cast<int>(packet->pts), 1 });
 				// doulbe of ^
 				double dts = av_q2d(ts);
 				// Report back
@@ -129,7 +129,7 @@ namespace Prismriver
 					// subtract the start of the current track
 					ts = av_sub_q(ts, { start, 1 });
 					// convert back to to time_base of the input stream
-					ts = av_div_q(ts, this->dataIn_->getStream()->time_base);
+					ts = av_div_q(ts, this->dataIn_->GetStream()->time_base);
 					// to double and trucante
 					packet->pts = static_cast<long long>(av_q2d(ts));
 					this->DecodePacket_(packet, frame, filterFrame, encodedPacket);
@@ -158,7 +158,7 @@ namespace Prismriver
 	{
 		av_packet_rescale_ts(
 			pPacket,
-			this->dataIn_->getStream()->time_base,
+			this->dataIn_->GetStream()->time_base,
 			this->dataIn_->codecContext->time_base
 		);
 
@@ -234,13 +234,13 @@ namespace Prismriver
 		if (track->Stop.HasValue)
 			stop = track->Stop.Value.TotalSeconds;
 		// Can't get a duration, report NaN
-		else if (this->dataIn_->getStream()->duration < 0)
+		else if (this->dataIn_->GetStream()->duration < 0)
 			stop = NAN;
 		// End of stream
 		else
 		{
 			// get seconds in AVRational
-			AVRational rat = av_mul_q({ static_cast<int>(this->dataIn_->getStream()->duration), 1 }, this->dataIn_->getStream()->time_base);
+			AVRational rat = av_mul_q({ static_cast<int>(this->dataIn_->GetStream()->duration), 1 }, this->dataIn_->GetStream()->time_base);
 			// convert to double
 			stop = av_q2d(rat);
 		}

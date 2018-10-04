@@ -39,7 +39,7 @@ namespace Prismriver
 			return &val;
 		}
 
-		bool isValid()
+		bool IsValid()
 		{
 			return val != nullptr;
 		}

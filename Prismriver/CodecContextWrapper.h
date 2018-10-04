@@ -43,19 +43,18 @@ namespace Prismriver
 		 * Returns the stream which is being read from.
 		 * Will return nullptr if the CodecContextWrapper was opened via openRead or no stream was found.
 		 */
-		AVStream* getStream();
+		AVStream* GetStream();
 
 		/**
 		 * Opens this CodecContextWrapper in reading mode.
 		 * Throw on failure.
 		 */
-		void openRead();
+		void OpenRead();
 
-		// TODO: This should probably not explicitly require an input.
 		/**
 		 * Opens this CodecContextWrapper in writing mode.
 		 * Throws on failure.
 		 */
-		void openWrite(CodecContextWrapper* dataIn);
+		void OpenWrite(CodecContextWrapper* dataIn);
 	};
 }

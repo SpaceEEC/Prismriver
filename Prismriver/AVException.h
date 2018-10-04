@@ -27,7 +27,7 @@ namespace Prismriver
 		static String^ GetStringFromAVerror(HRESULT hr)
 		{
 			char errbuf[AV_ERROR_MAX_STRING_SIZE];
-			av_make_error_string(reinterpret_cast<char*>(&errbuf), AV_ERROR_MAX_STRING_SIZE, hr);
+			av_strerror(hr, reinterpret_cast<char*>(&errbuf), AV_ERROR_MAX_STRING_SIZE);
 			return gcnew String(errbuf);
 		}
 	};

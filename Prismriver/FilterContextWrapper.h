@@ -36,7 +36,7 @@ namespace Prismriver
 		 */
 		AVFilterContext* bufferSourceContext;
 
-		void initFilters(CodecContextWrapper* dataIn);
+		void InitFilters(CodecContextWrapper* dataIn);
 	};
 
 }

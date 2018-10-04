@@ -15,7 +15,7 @@ namespace Prismriver
 
 		avfilter_graph_free(&this->filterGraph);
 	}
-	void FilterContextWrapper::initFilters(CodecContextWrapper* dataIn)
+	void FilterContextWrapper::InitFilters(CodecContextWrapper* dataIn)
 	{
 		const AVFilter* pBufferSource = nullptr;
 		const AVFilter* pBufferSink = nullptr;
@@ -24,7 +24,7 @@ namespace Prismriver
 		InOutHandle inputs(avfilter_inout_alloc(), avfilter_inout_free);
 		AVFilterGraph* pFilterGraph = this->filterGraph = avfilter_graph_alloc();
 
-		if (!outputs.isValid() || !inputs.isValid() || pFilterGraph == nullptr)
+		if (!outputs.IsValid() || !inputs.IsValid() || pFilterGraph == nullptr)
 			throw gcnew OutOfMemoryException();
 
 		pBufferSource = avfilter_get_by_name("abuffer");

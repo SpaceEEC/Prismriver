@@ -11,16 +11,16 @@ namespace Prismriver
 		avcodec_free_context(&this->codecContext);
 	}
 
-	AVStream* CodecContextWrapper::getStream()
+	AVStream* CodecContextWrapper::GetStream()
 	{
 		if (this->streamIndex == AVERROR_STREAM_NOT_FOUND) return nullptr;
 		if (this->formatContext == nullptr) return nullptr;
 		return this->formatContext->streams[this->streamIndex];
 	}
 
-	void CodecContextWrapper::openRead()
+	void CodecContextWrapper::OpenRead()
 	{
-		FormatContextWrapper::openRead();
+		FormatContextWrapper::OpenRead();
 
 		HRESULT hr = avformat_find_stream_info(this->formatContext, nullptr);
 		if (FAILED(hr)) throw gcnew AVException(hr);
@@ -41,9 +41,9 @@ namespace Prismriver
 		if (FAILED(hr)) throw gcnew AVException(hr);
 	}
 
-	void CodecContextWrapper::openWrite(CodecContextWrapper* dataIn)
+	void CodecContextWrapper::OpenWrite(CodecContextWrapper* dataIn)
 	{
-		FormatContextWrapper::openWrite();
+		FormatContextWrapper::OpenWrite();
 
 		this->codec = avcodec_find_encoder(this->formatContext->oformat->audio_codec);
 		if (this->codec == nullptr) throw gcnew AVException(AVERROR_ENCODER_NOT_FOUND);

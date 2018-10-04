@@ -54,12 +54,12 @@ namespace Prismriver
 		 * Opens this IOContextWrapper in read mode.
 		 * Throws on failure.
 		 */
-		void openRead() { this->open_(true); }
+		void OpenRead() { this->open_(true); }
 
 		/**
 		 * Opens this IOContextWrapper in write mode.
 		 * Throws on failure.
 		 */
-		void openWrite() { this->open_(false); }
+		void OpenWrite() { this->open_(false); }
 	};
 }

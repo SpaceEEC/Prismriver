@@ -33,7 +33,7 @@ namespace Prismriver
 			av_freep(&this->format_);
 	}
 
-	void FormatContextWrapper::openRead()
+	void FormatContextWrapper::OpenRead()
 	{
 		if (this->opened_) throw gcnew InvalidOperationException("This FormatContextWrapper had already been opened.");
 		this->opened_ = true;
@@ -44,7 +44,7 @@ namespace Prismriver
 
 		if (this->ioContextWrapper_ != nullptr)
 		{
-			this->ioContextWrapper_->openRead(); // Throws on failure
+			this->ioContextWrapper_->OpenRead(); // Throws on failure
 			this->formatContext->pb = this->ioContextWrapper_->ioContext;
 		}
 
@@ -52,7 +52,7 @@ namespace Prismriver
 		if (FAILED(hr)) throw gcnew AVException(hr);
 	}
 
-	void FormatContextWrapper::openWrite()
+	void FormatContextWrapper::OpenWrite()
 	{
 		if (this->opened_) throw gcnew InvalidOperationException("This FormatContextWrapper had already been opened.");
 		this->opened_ = true;
@@ -69,7 +69,7 @@ namespace Prismriver
 
 		if (this->ioContextWrapper_ != nullptr)
 		{
-			this->ioContextWrapper_->openWrite();
+			this->ioContextWrapper_->OpenWrite(); // Throws on failure
 			this->formatContext->pb = this->ioContextWrapper_->ioContext;
 		}
 		else if ((pOutputFormat->flags & AVFMT_NOFILE) == 0)
